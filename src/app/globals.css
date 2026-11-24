@@ -29,8 +29,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-alexandria);
-  --font-heading: var(--font-alexandria);
+  --font-sans: var(--font-el-messiri);
+  --font-heading: var(--font-el-messiri);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --color-background: var(--background);

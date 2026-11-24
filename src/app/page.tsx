@@ -27,7 +27,7 @@ export default function Home() {
   }, [lang]);
 
   const langButton =
-    "relative z-10 h-11 rounded-full text-sm font-bold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60";
+    "relative z-10 h-11 rounded-full text-sm font-normal transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60";
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-8 bg-night-deep px-6 py-12 text-center">
@@ -35,14 +35,24 @@ export default function Home() {
 
       <h1
         key={lang}
-        className="lang-swap text-2xl font-extrabold text-nhi sm:text-3xl"
+        className="lang-swap text-[2rem] font-normal text-nhi sm:text-[2.5rem]"
       >
-        {lang === "ar" ? BRAND.lockup : BRAND.latin}
+        {lang === "ar" ? (
+          <span className="inline-flex items-baseline gap-3">
+            <span>{BRAND.arabic}</span>
+            <span aria-hidden="true" className="text-gold/60">
+              ·
+            </span>
+            <span className="tracking-[0.08em]">{BRAND.latin}</span>
+          </span>
+        ) : (
+          <span className="tracking-[0.08em]">{BRAND.latin}</span>
+        )}
       </h1>
 
       <Button
         asChild
-        className="h-12 w-full max-w-xs rounded-full bg-gold px-8 text-base font-extrabold text-goldink hover:bg-gold/90 focus-visible:ring-gold/60"
+        className="h-12 w-full max-w-xs rounded-full bg-gold px-8 text-base font-normal text-goldink hover:bg-gold/90 focus-visible:ring-gold/60"
       >
         <a href="#">
           <span key={lang} className="lang-swap">

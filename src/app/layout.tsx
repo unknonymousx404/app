@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Alexandria } from "next/font/google";
+import { El_Messiri } from "next/font/google";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
-const alexandria = Alexandria({
+const elMessiri = El_Messiri({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "700", "800"],
-  variable: "--font-alexandria",
+  weight: ["400", "500", "600"],
+  variable: "--font-el-messiri",
   display: "swap",
 });
 
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="ar"
       dir="rtl"
-      className={`${alexandria.variable} dark h-full antialiased`}
+      className={`${elMessiri.variable} dark h-full antialiased`}
     >
       <body className="min-h-full bg-night-deep font-sans text-nhi">
         {children}
