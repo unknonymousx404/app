@@ -27,7 +27,7 @@ export default function Home() {
   }, [lang]);
 
   const langButton =
-    "relative z-10 h-11 rounded-full text-sm font-normal transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60";
+    "font-latin relative z-10 h-11 rounded-full text-sm font-normal transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60";
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-8 bg-night-deep px-6 py-12 text-center">
@@ -43,10 +43,10 @@ export default function Home() {
             <span aria-hidden="true" className="text-gold/60">
               ·
             </span>
-            <span className="tracking-[0.08em]">{BRAND.latin}</span>
+            <span className="font-latin font-light tracking-[0.08em]">{BRAND.latin}</span>
           </span>
         ) : (
-          <span className="tracking-[0.08em]">{BRAND.latin}</span>
+          <span className="font-latin font-light tracking-[0.08em]">{BRAND.latin}</span>
         )}
       </h1>
 
@@ -55,7 +55,10 @@ export default function Home() {
         className="h-12 w-full max-w-xs rounded-full bg-gold px-8 text-base font-normal text-goldink hover:bg-gold/90 focus-visible:ring-gold/60"
       >
         <a href="#">
-          <span key={lang} className="lang-swap">
+          <span
+            key={lang}
+            className={`lang-swap ${lang === "en" ? "font-latin font-light" : ""}`}
+          >
             {t.startFree}
           </span>
         </a>
