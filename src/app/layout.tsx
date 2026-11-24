@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { El_Messiri, Jost } from "next/font/google";
+import { El_Messiri } from "next/font/google";
+import localFont from "next/font/local";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
@@ -10,11 +11,12 @@ const elMessiri = El_Messiri({
   display: "swap",
 });
 
-// Jost خط هندسي لاتيني فقط (لا يدعم العربية) — للاتيني، والعربية تبقى El Messiri.
-const jost = Jost({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  variable: "--font-jost",
+// Agrave Pro خط لاتيني فقط (لا يدعم العربية) — للاتيني، والعربية تبقى El Messiri.
+// ملف متغيّر محلي مرخّص OFL (الترخيص بجانبه في fonts/agrave_pro_OFL.txt).
+const agravePro = localFont({
+  src: "./fonts/agrave_pro.ttf",
+  weight: "100 700",
+  variable: "--font-agrave-pro",
   display: "swap",
 });
 
@@ -33,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="ar"
       dir="rtl"
-      className={`${elMessiri.variable} ${jost.variable} dark h-full antialiased`}
+      className={`${elMessiri.variable} ${agravePro.variable} dark h-full antialiased`}
     >
       <body className="min-h-full bg-night-deep font-sans text-nhi">
         {children}

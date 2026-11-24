@@ -31,8 +31,8 @@
 @theme inline {
   --font-sans: var(--font-el-messiri);
   --font-heading: var(--font-el-messiri);
-  /* لاتيني فقط: Jost أولاً، ثم El Messiri كاحتياط لأي محرف عربي. */
-  --font-latin: var(--font-jost), var(--font-el-messiri), sans-serif;
+  /* لاتيني فقط: Agrave Pro أولاً، ثم El Messiri كاحتياط لأي محرف عربي. */
+  --font-latin: var(--font-agrave-pro), var(--font-el-messiri), sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --color-background: var(--background);
