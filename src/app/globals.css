@@ -1,0 +1,153 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  لوحة راحة الليلية — المصدر الوحيد: docs/brand.md
+  سبعة عشر رمزاً بأسمائها وقيمها حرفياً. لا تُستخدم قيم hex خارج هذا البلوك.
+*/
+@theme static {
+  --color-night: #101735;
+  --color-night-deep: #0a1226;
+  --color-ncard: #1b2447;
+  --color-nsoft: #182041;
+  --color-nchip: #232e5c;
+  --color-nline: #2c3766;
+  --color-nedge: #4a5588;
+  --color-nhi: #edf1ff;
+  --color-nmd: #c9d2f5;
+  --color-nlo: #9ba8d8;
+  --color-ndim: #7c89bd;
+  --color-gold: #f5c86b;
+  --color-goldink: #1c2142;
+  --color-ngreen: #6fd3a6;
+  --color-nblue: #2c3a75;
+  --color-ndot: #3d4a80;
+  --color-frame: #2a3566;
+}
+
+@theme inline {
+  --font-sans: var(--font-almarai);
+  --font-heading: var(--font-almarai);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* الوضع الليلي هو الوحيد في راحة — نربط رموز shadcn باللوحة الليلية. */
+:root {
+  color-scheme: dark;
+  --background: var(--color-night-deep);
+  --foreground: var(--color-nhi);
+  --card: var(--color-ncard);
+  --card-foreground: var(--color-nhi);
+  --popover: var(--color-ncard);
+  --popover-foreground: var(--color-nhi);
+  --primary: var(--color-gold);
+  --primary-foreground: var(--color-goldink);
+  --secondary: var(--color-nsoft);
+  --secondary-foreground: var(--color-nhi);
+  --muted: var(--color-nsoft);
+  --muted-foreground: var(--color-nlo);
+  --accent: var(--color-nchip);
+  --accent-foreground: var(--color-nhi);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: var(--color-nline);
+  --input: var(--color-nline);
+  --ring: var(--color-gold);
+  --chart-1: var(--color-gold);
+  --chart-2: var(--color-ngreen);
+  --chart-3: var(--color-nblue);
+  --chart-4: var(--color-nlo);
+  --chart-5: var(--color-ndot);
+  --radius: 0.75rem;
+  --sidebar: var(--color-ncard);
+  --sidebar-foreground: var(--color-nhi);
+  --sidebar-primary: var(--color-gold);
+  --sidebar-primary-foreground: var(--color-goldink);
+  --sidebar-accent: var(--color-nsoft);
+  --sidebar-accent-foreground: var(--color-nhi);
+  --sidebar-border: var(--color-nline);
+  --sidebar-ring: var(--color-gold);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-night-deep text-nhi;
+  }
+}
+
+/* أرقام وتوقيتات لاتينية داخل سياق عربي معزول. */
+.ltr-inline {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* الهلال — التنفيذ الحرفي من docs/brand.md، بألوان اللوحة. */
+.raha-moon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 68% 32%,
+    var(--color-night) 0 52%,
+    var(--color-gold) 54% 100%
+  );
+}
