@@ -35,7 +35,7 @@ export default function Home() {
 
       <h1
         key={lang}
-        className="lang-swap text-2xl font-extrabold tracking-tight text-nhi sm:text-3xl"
+        className="lang-swap text-2xl font-extrabold text-nhi sm:text-3xl"
       >
         {lang === "ar" ? BRAND.lockup : BRAND.latin}
       </h1>

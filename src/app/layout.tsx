@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Almarai } from "next/font/google";
+import { Alexandria } from "next/font/google";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
-const almarai = Almarai({
+const alexandria = Alexandria({
   subsets: ["arabic", "latin"],
   weight: ["300", "400", "700", "800"],
-  variable: "--font-almarai",
+  variable: "--font-alexandria",
   display: "swap",
 });
 
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="ar"
       dir="rtl"
-      className={`${almarai.variable} dark h-full antialiased`}
+      className={`${alexandria.variable} dark h-full antialiased`}
     >
       <body className="min-h-full bg-night-deep font-sans text-nhi">
         {children}
