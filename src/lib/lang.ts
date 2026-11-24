@@ -4,16 +4,17 @@ import { useSyncExternalStore } from "react";
 import type { Lang } from "@/lib/i18n";
 
 // مفتاح حفظ اللغة المعتمد — راجع docs/i18n.md.
+// الإنجليزية هي اللغة الافتراضية لأول فتح (بتوجيه المستخدم).
 export const LANG_STORAGE_KEY = "raha.lang";
 
 const listeners = new Set<() => void>();
 
 function readLang(): Lang {
-  if (typeof window === "undefined") return "ar";
+  if (typeof window === "undefined") return "en";
   try {
-    return window.localStorage.getItem(LANG_STORAGE_KEY) === "en" ? "en" : "ar";
+    return window.localStorage.getItem(LANG_STORAGE_KEY) === "ar" ? "ar" : "en";
   } catch {
-    return "ar";
+    return "en";
   }
 }
 
@@ -36,7 +37,7 @@ export function getLangSnapshot(): Lang {
 }
 
 export function getServerLangSnapshot(): Lang {
-  return "ar";
+  return "en";
 }
 
 export function setLang(lang: Lang): void {
