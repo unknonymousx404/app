@@ -151,3 +151,26 @@
     var(--color-gold) 54% 100%
   );
 }
+
+/* انتقال ناعم للنص عند تبديل اللغة — بلا قفزات في التخطيط. */
+@keyframes raha-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lang-swap {
+  display: inline-block;
+  animation: raha-text-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lang-swap {
+    animation: none;
+  }
+}
