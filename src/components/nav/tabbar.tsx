@@ -36,7 +36,8 @@ export function TabBar({ active = "today" }: { active?: TabId }) {
     // «اليوم» يمر ببوابة /today: تسجيل الليلة صباحاً، وإلا خطة اليوم.
     { id: "today" as const, label: t.today, icon: Moon, href: "/today" },
     { id: "ask" as const, label: t.ask, icon: MessageCircle, href: "/ask" },
-    { id: "library" as const, label: t.library, icon: BookOpen },
+    // «المكتبة» تفتح مكتبة النوم (الشاشة 09).
+    { id: "library" as const, label: t.library, icon: BookOpen, href: "/library" },
     { id: "progress" as const, label: t.progress, icon: TrendingUp },
   ];
 

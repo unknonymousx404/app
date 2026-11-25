@@ -157,6 +157,23 @@
 }
 
 /*
+  ثيم الشاشة 04 الليلي — docs/screens.md § الشاشة 04:
+  «ثيم ليلي إجباري لهذه الشاشة (إضاءة منخفضة افتراضياً مساءً)».
+
+  لا قيم لونية جديدة هنا: كل ما هو إعادة ربط بين رموز اللوحة المعتمدة
+  في docs/brand.md. night ← night-deep (خلفية أدكن)، ncard ← nsoft وnchip
+  ← nsoft (بطاقات أهدأ)، nhi ← nmd (سطوع النص أقل)، وnline ← nsoft
+  (حدود أخف). الهلال يبقى ذهبياً لأنه عنصر التوجّه في الثيم الداكن.
+*/
+.theme-night {
+  --color-night: var(--color-night-deep);
+  --color-ncard: var(--color-nsoft);
+  --color-nchip: var(--color-nsoft);
+  --color-nhi: var(--color-nmd);
+  --color-nline: var(--color-nsoft);
+}
+
+/*
   انتقال نص زر البدء عند تبديل اللغة (كما هو معتمد):
   شفافية + توهج ناعم أولاً (620ms)، ثم صعود أبطأ يستقر بهدوء (900ms).
 */

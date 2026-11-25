@@ -4,6 +4,7 @@ import type { FirstPlan } from "@/lib/engine/first-plan";
 import type { GrowingProfile } from "@/lib/store/profile";
 import { ageInDays, ageParts } from "@/lib/age";
 import { hasRedFlag } from "@/lib/engine/safety";
+import { survivalGuideForAge } from "@/lib/content/library";
 
 export type AnswerTemplate =
   | "feed-before-bed"
@@ -27,6 +28,8 @@ export interface BaseAnswer {
   text: string;
   template: AnswerTemplate | "safety";
   suggestedAdjustment?: { from: string; to: string };
+  /** الدرس الذي يوسّد به الرد — يفتح في مكتبة النوم. */
+  lessonId?: string;
 }
 
 function pickTemplate(question: string): AnswerTemplate {
@@ -39,9 +42,40 @@ function pickTemplate(question: string): AnswerTemplate {
   return "general";
 }
 
-function profileAge(profile: GrowingProfile, today: Date): { exact: string; days: number } {
+function profileAge(
+  profile: GrowingProfile,
+  today: Date,
+): { exact: string; days: number; months: number } {
   const parts = ageParts(profile.birthDate, today) ?? { months: 0, days: 0 };
-  return { exact: formatAge("ar", parts.months, parts.days), days: ageInDays(profile.birthDate, today) ?? 0 };
+  return {
+    exact: formatAge("ar", parts.months, parts.days),
+    days: ageInDays(profile.birthDate, today) ?? 0,
+    months: parts.months,
+  };
+}
+
+/**
+ * الدرس الذي يوسّد به الرد — docs/screens.md § الشاشة 09:
+ * «سؤال في الدردشة يوسّد بدرسه». يختار حسب موضوع السؤال وعمر الطفل.
+ */
+function lessonForTemplate(
+  template: AnswerTemplate,
+  months: number,
+): string | undefined {
+  switch (template) {
+    case "feed-before-bed":
+      return "behavior-bottle";
+    case "frequent-wakes":
+      return survivalGuideForAge(months).id;
+    case "late-routine":
+      return "context-prayer";
+    case "grandma-nap":
+      return "nap-grandma";
+    case "tangled-regression":
+      return survivalGuideForAge(months).id;
+    default:
+      return undefined;
+  }
 }
 
 export function buildBaseAnswer(context: AnswerContext): BaseAnswer {
@@ -70,7 +104,7 @@ export function buildBaseAnswer(context: AnswerContext): BaseAnswer {
       "tangled-regression": `${opening} A tangled regression is a reason to lower expectations, not to add more rules tonight. Keep the timings steady and use the calm response already in the plan. ${step}`,
       general: `${opening} I can answer from the saved profile, tonight's plan, and the adjustment history — not from an open web search. ${lastPlan} ${step}`,
     };
-    return { text: answers[pattern], template: pattern, suggestedAdjustment: pattern === "late-routine" ? { from: plan.bedtime, to: plan.bedtime } : undefined };
+    return { text: answers[pattern], template: pattern, suggestedAdjustment: pattern === "late-routine" ? { from: plan.bedtime, to: plan.bedtime } : undefined, lessonId: lessonForTemplate(pattern, age.months) };
   }
 
   const opening = `أتذكر ملف طفلك: ${ageText}.`;
@@ -82,5 +116,5 @@ export function buildBaseAnswer(context: AnswerContext): BaseAnswer {
     "tangled-regression": `${opening} الانحدار المشتبك سبب لخفض التوقعات، لا لإضافة قواعد أكثر الليلة. ثبّتي التوقيتات واستجيبي بالهدوء الموجود في الخطة. ${step}`,
     general: `${opening} أجيبك من الملف المحفوظ وخطة الليلة وسجل التعديلات — لا من بحث مفتوح. ${lastPlan} ${step}`,
   };
-  return { text: answers[pattern], template: pattern, suggestedAdjustment: pattern === "late-routine" ? { from: plan.bedtime, to: plan.bedtime } : undefined };
+  return { text: answers[pattern], template: pattern, suggestedAdjustment: pattern === "late-routine" ? { from: plan.bedtime, to: plan.bedtime } : undefined, lessonId: lessonForTemplate(pattern, age.months) };
 }

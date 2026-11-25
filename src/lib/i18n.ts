@@ -6,6 +6,7 @@ import type {
   AdjustmentReasonCode,
 } from "@/lib/engine/adjuster";
 import type { PlanReason, PlanReasonCode } from "@/lib/engine/first-plan";
+import type { RoutineStepId, RoutineTemplateId } from "@/lib/engine/routines";
 
 export type Lang = "ar" | "en";
 
@@ -178,6 +179,7 @@ const planAr = {
 
   startCta: "حسناً — ابدئي الليلة",
   startedNotice: "تم — خطتك لهذه الليلة جاهزة. نبدأ {time}.",
+  openRoutine: "إلى روتين الليلة",
 
   shareCta: "شاركي الخطة",
   shareAria: "مشاركة خطة الليلة كصورة",
@@ -236,6 +238,7 @@ export const PLAN: Record<Lang, Record<PlanKeys, string>> = {
 
     startCta: "Okay — start tonight",
     startedNotice: "Done — tonight's plan is set. We start at {time}.",
+    openRoutine: "To tonight's routine",
 
     shareCta: "Share the plan",
     shareAria: "Share tonight's plan as an image",
@@ -684,6 +687,7 @@ const askAr = {
   typing: "راحة تراجع الملف وتفكر بهدوء...",
   addAdjustment: "أضيفي التعديل إلى خطة الليلة",
   adjustmentAdded: "تم — أضفنا التعديل إلى سجل خطة الليلة.",
+  lessonLink: "افتحي الدرس المرتبط في المكتبة",
   askTomorrow: "وغداً أسأليني ماذا حدث",
   tomorrowAdded: "تم — سأعيد السؤال غداً صباحاً.",
   safetyTitle: "الأفضل أن يطمئن عليكِ طبيب",
@@ -708,6 +712,7 @@ export const ASK: Record<Lang, Record<AskKeys, string>> = {
     typing: "Raha is checking the profile and thinking calmly...",
     addAdjustment: "Add the adjustment to tonight's plan",
     adjustmentAdded: "Done — the adjustment is in tonight's plan history.",
+    lessonLink: "Open the related lesson in the library",
     askTomorrow: "Ask me tomorrow what happened",
     tomorrowAdded: "Done — I'll ask again tomorrow morning.",
     safetyTitle: "A doctor should check this",
@@ -780,11 +785,12 @@ const adjustmentsAr = {
   emergencyBody: "ثبّتنا توقيتات اليوم كما هي — الأمان أولاً",
   emergencyNote:
     "لا تعديلات اليوم، ولا مطاردة. أنزلنا التوقعات إلى معايير أسبوع سابق، وكل التوقيتات كما اعتمدتِها.",
-  survivalLink: "دليل النجاة — يكتمل قريباً",
-  survivalHint: "يفتح من الشاشة 09 بعد يومين.",
+  survivalLink: "دليل النجاة — افتحيه الآن",
+  survivalHint: "دليل عملي بثلاثة أيام، مبني على عمر ليان.",
 
   ackCta: "شاهدت خطة اليوم — على الروتين مساءً",
   ackNotice: "تم — نراك على الروتين مساءً. بعدها يصمت التطبيق حتى الصباح.",
+  openRoutine: "إلى روتين الليلة",
 
   historyToggle: "سجل التعديلات السابقة",
   historyTitle: "سجل التعديلات",
@@ -871,11 +877,13 @@ export const ADJUSTMENTS: Record<Lang, Record<AdjustmentsKeys, string>> = {
     emergencyBody: "Today's timings are fixed exactly as they are — safety first",
     emergencyNote:
       "No adjustments today, and no chasing. Expectations are lowered to a previous week's standard, and every timing stays as you set it.",
-    survivalLink: "Survival guide — coming soon",
-    survivalHint: "It opens from screen 09 in two days.",
+    survivalLink: "Survival guide — open it now",
+    survivalHint:
+      "A practical three-day guide, built around Layan's age.",
 
     ackCta: "I've seen today's plan — on the routine tonight",
     ackNotice: "Done — see you at the routine tonight. After that the app stays quiet until morning.",
+    openRoutine: "To tonight's routine",
 
     historyToggle: "Earlier adjustments",
     historyTitle: "Adjustment history",
@@ -924,3 +932,337 @@ export function formatAdjustmentReason(
     to: adjustment.to,
   });
 }
+
+// ------------------------- الشاشة 04 — روتين التهدئة -------------------------
+// كل نصوص الواجهة من docs/screens.md § الشاشة 04. القوالب الستة مبنية
+// ثقافياً، وأسماؤها تُشتق من أسماء خطواتها في i18n (step*Title) — فلا
+// يتكرر النص ولا ينحرف عن خطواته.
+
+const routineAr = {
+  docTitle: "روتين التهدئة",
+  headerTitle: "روتين التهدئة",
+  headerSubline: "ليان · {age}",
+  nightBadge: "الوضع الليلي — إضاءة هادئة",
+
+  summarySteps: "{count} خطوات · {minutes} د",
+  summaryDone: "أنجزتِ {done} من {total}",
+  progressAria: "تقدم خطوات الروتين",
+  nowLabel: "الآن",
+  stateDone: "منجزة",
+  stateNext: "قادمة",
+  minutesShort: "د",
+  stepsWord: "خطوات",
+
+  timerStart: "ابدئي خطوة التهدئة",
+  timerStop: "أوقفي المؤقت",
+  timerAria: "مؤقت خطوة {step}",
+  timerFinished: "انتهى الوقت — انتهت الخطوة",
+
+  delayCta: "تأخّري 5 دقائق",
+  delayNoticeShifted:
+    "سجّلنا التأخير — وأُزاح ما بعده {minutes} دقيقة، وسنحسبه في خطتك غداً.",
+  delayNoticePlain: "سجّلنا التأخير — وأُزاح ما بعده.",
+  delayRecorded:
+    "سجّلنا التأخير — وأُزاح ما بعده {minutes} دقيقة، وسنحسبه في خطتك غداً.",
+
+  consistencyNotice: "الترتيب ثابت كل ليلة — الثبات هو نصف التدريب",
+
+  editToggle: "عدّلي الروتين",
+  editTitle: "رتّبي روتينك",
+  templateLabel: "قالب الروتين",
+  templateHint: "ستة قوالب مبنية ثقافياً — اختاري الأقرب لبيتك",
+  templateNoteBathFeedQuranDim: "الأقرب لخطتك الحالية: أربع خطوات و35 دقيقة.",
+  templateNoteFeedQuranSongDim: "بلا حمام — حين يكون الماء عبة في تلك الليلة.",
+  templateNoteBathFeedSongDim: "أنشودة بدل التلاوة — لمن تختار النغمة قبل الكلمات.",
+  templateNoteFullFive: "خمس خطوات كاملة لمن يتّسع لها — بلا زيادة بعدها.",
+  templateNoteBathFeedHoldDim: "يحمل المسك مكان التلاوة — لليلة يحتاج فيها حضناً.",
+  templateNoteLightThree: "ثلاث خطوات فقط — حين تكون الأم منهكة، والقليل يفيد.",
+  applyTemplate: "اعتمدي هذا القالب",
+  templateApplied: "تم — اعتمدنا هذا القالب",
+
+  orderLabel: "ترتيب الخطوات",
+  orderHint: "اسحبي المقبض، أو استخدمي سهمي لوحة المفاتيح، لتغيير الترتيب",
+  stepMinutesLabel: "مدة {step}",
+  stepMinutesHint: "المدة تُوزَّع على بقية الخطوات تلقائياً.",
+  startTimeLabel: "بداية الروتين",
+  startTimeHint: "من خطة اليوم — غيّريها إن أردتِ",
+
+  reminderTitle: "تذكير المساء",
+  reminderBody:
+    "إشعار واحد فقط قبل الروتين بعشر دقائق — ولا إشعار ثانٍ في اليوم.",
+  reminderTimeLabel: "وقت التذكير",
+  reminderTimeHint: "يُحسب تلقائياً: عشر دقائق قبل بداية الروتين.",
+  reminderEnable: "فعّلي التذكير",
+  reminderDisable: "أوقفي التذكير",
+  reminderGranted: "التذكير مفعّل — سيصلك قبل الروتين بعشر دقائق.",
+  reminderDenied:
+    "الإذن مرفوض في المتصفح — لن يظهر التذكير خارج التطبيق.",
+  reminderUnsupported:
+    "هذا المتصفح لا يدعم الإشعارات — التذكير يظهر داخل التطبيق فقط.",
+  reminderScheduled: "تم — التذكير مجدول قبل الروتين بعشر دقائق.",
+  reminderOff: "التذكير موقوف.",
+  reminderNotifyTitle: "اقترب روتين ليان — {time}",
+  reminderNotifyBody: "اقترب روتين ليان. جهّزي الغرفة قبل عشر دقائق.",
+  minutesDecrease: "أنقصي {minutes} دقائق من {step}",
+  minutesIncrease: "أضيفي {minutes} دقائق إلى {step}",
+
+  // أسماء الخطوات الست وجملة إرشاد لكل خطوة.
+  stepBathTitle: "حمام دافئ",
+  stepBathGuide:
+    "ماء دافئ لا ساخن، وثوم هادئ. لا تُطوّلي أكثر من عشر دقائق.",
+  stepFeedTitle: "الرضعة الأخيرة",
+  stepFeedGuide:
+    "آخر رضعة في اليوم، ثم فاصل قبل السرير حتى لا ترتبط الرضاعة بالنوم.",
+  stepQuranTitle: "التلاوة",
+  stepQuranGuide:
+    "صفحة واحدة هادئة بصوتك — أو تلاوة قصيرة تعوّدها كما هي.",
+  stepSongTitle: "الأنشودة",
+  stepSongGuide:
+    "نفس الأنشودة كل ليلة — التكرار هو ما يهدّئ، لا التنويع.",
+  stepHoldTitle: "المسك",
+  stepHoldGuide:
+    "حضن على الصدر لبضع دقائق، ثم انتقاله إلى السرير وأنتِ هادئة.",
+  stepDimTitle: "الضوء الخافت",
+  stepDimGuide: "أطفئي الضوء، واتركي صوتاً واحداً فقط — ثم ضعيها في السرير.",
+} as const;
+
+type RoutineKeys = keyof typeof routineAr;
+
+export const ROUTINE: Record<Lang, Record<RoutineKeys, string>> = {
+  ar: routineAr,
+  en: {
+    docTitle: "Wind-down routine",
+    headerTitle: "Wind-down routine",
+    headerSubline: "Layan · {age}",
+    nightBadge: "Night mode — soft lighting",
+
+    summarySteps: "{count} steps · {minutes} min",
+    summaryDone: "You've done {done} of {total}",
+    progressAria: "Routine steps progress",
+    nowLabel: "Now",
+    stateDone: "Done",
+    stateNext: "Up next",
+    minutesShort: "min",
+    stepsWord: "steps",
+
+    timerStart: "Start the settling step",
+    timerStop: "Stop the timer",
+    timerAria: "Timer for the {step} step",
+    timerFinished: "Time's up — the step is done",
+
+    delayCta: "Running 5 minutes late",
+    delayNoticeShifted:
+      "We recorded the delay — what follows moves {minutes} minutes, and we will carry it into tomorrow's plan.",
+    delayNoticePlain: "We recorded the delay — what follows moves.",
+    delayRecorded:
+      "We recorded the delay — what follows moves {minutes} minutes, and we will carry it into tomorrow's plan.",
+
+    consistencyNotice:
+      "The order is the same every night — consistency is half the training",
+
+    editToggle: "Adjust the routine",
+    editTitle: "Arrange your routine",
+    templateLabel: "Routine template",
+    templateHint:
+      "Six templates built around real homes — pick the closest to yours",
+    templateNoteBathFeedQuranDim:
+      "Closest to your current plan: four steps and 35 minutes.",
+    templateNoteFeedQuranSongDim:
+      "No bath — for the nights when water is one thing too many.",
+    templateNoteBathFeedSongDim:
+      "A song instead of a recitation — for the nights a tune comes easier.",
+    templateNoteFullFive:
+      "Five full steps for the nights that have room for them — and no more after that.",
+    templateNoteBathFeedHoldDim:
+      "Holding replaces the recitation — for a night that needs arms.",
+    templateNoteLightThree:
+      "Three steps only — for a night when you are the tired one.",
+    applyTemplate: "Use this template",
+    templateApplied: "Done — we switched to this template",
+
+    orderLabel: "Step order",
+    orderHint:
+      "Drag the handle, or use the arrow keys, to change the order",
+    stepMinutesLabel: "{step} length",
+    stepMinutesHint:
+      "The time is redistributed across the other steps automatically.",
+    startTimeLabel: "Routine start",
+    startTimeHint: "From today's plan — change it if you need to",
+
+    reminderTitle: "Evening reminder",
+    reminderBody:
+      "One reminder only, ten minutes before the routine — and never a second one in the same day.",
+    reminderTimeLabel: "Reminder time",
+    reminderTimeHint: "Set automatically: ten minutes before the routine starts.",
+    reminderEnable: "Turn on the reminder",
+    reminderDisable: "Turn off the reminder",
+    reminderGranted:
+      "The reminder is on — it will arrive ten minutes before the routine.",
+    reminderDenied:
+      "Permission was declined in your browser — the reminder will not appear outside the app.",
+    reminderUnsupported:
+      "This browser does not support notifications — the reminder appears inside the app only.",
+    reminderScheduled:
+      "Done — the reminder is scheduled ten minutes before the routine.",
+    reminderOff: "The reminder is off.",
+    reminderNotifyTitle: "Layan's routine is close — {time}",
+    reminderNotifyBody:
+      "Layan's routine is close. Prepare the room ten minutes ahead.",
+    minutesDecrease: "Take {minutes} minutes off {step}",
+    minutesIncrease: "Add {minutes} minutes to {step}",
+
+    stepBathTitle: "A warm bath",
+    stepBathGuide:
+      "Warm water, not hot, and a quiet sigh. Keep it under ten minutes.",
+    stepFeedTitle: "The last feed",
+    stepFeedGuide:
+      "The final feed of the day, then a gap before the cot so feeding does not become the sleep cue.",
+    stepQuranTitle: "Recitation",
+    stepQuranGuide:
+      "One calm page in your own voice — or the short recitation you always do.",
+    stepSongTitle: "The same song",
+    stepSongGuide:
+      "The same song every night — repetition is what settles, not variety.",
+    stepHoldTitle: "Holding",
+    stepHoldGuide:
+      "A few minutes held against your chest, then a calm move to the cot.",
+    stepDimTitle: "Dim light",
+    stepDimGuide:
+      "Light off, one sound only — then she goes into the cot.",
+  },
+};
+
+const routineStepKeys: Record<
+  RoutineStepId,
+  { title: RoutineKeys; guide: RoutineKeys }
+> = {
+  bath: { title: "stepBathTitle", guide: "stepBathGuide" },
+  feed: { title: "stepFeedTitle", guide: "stepFeedGuide" },
+  quran: { title: "stepQuranTitle", guide: "stepQuranGuide" },
+  song: { title: "stepSongTitle", guide: "stepSongGuide" },
+  hold: { title: "stepHoldTitle", guide: "stepHoldGuide" },
+  dimlight: { title: "stepDimTitle", guide: "stepDimGuide" },
+};
+
+/** اسم الخطوة وجملة إرشادها بلغة الواجهة. */
+export function routineStepText(
+  lang: Lang,
+  stepId: RoutineStepId,
+): { title: string; guide: string } {
+  const keys = routineStepKeys[stepId];
+  return {
+    title: ROUTINE[lang][keys.title],
+    guide: ROUTINE[lang][keys.guide],
+  };
+}
+
+const routineTemplateNoteKeys: Record<
+  RoutineTemplateId,
+  RoutineKeys
+> = {
+  "bath-feed-quran-dim": "templateNoteBathFeedQuranDim",
+  "feed-quran-song-dim": "templateNoteFeedQuranSongDim",
+  "bath-feed-song-dim": "templateNoteBathFeedSongDim",
+  "full-five": "templateNoteFullFive",
+  "bath-feed-hold-dim": "templateNoteBathFeedHoldDim",
+  "light-three": "templateNoteLightThree",
+};
+
+/** جملة تصف القالب حسب بيت الأم. */
+export function routineTemplateNote(
+  lang: Lang,
+  templateId: RoutineTemplateId,
+): string {
+  return ROUTINE[lang][routineTemplateNoteKeys[templateId]];
+}
+
+// ------------------------- الشاشة 09 — مكتبة النوم -------------------------
+const libraryAr = {
+  docTitle: "مكتبة النوم",
+  headerTitle: "مكتبة النوم",
+  headerBody: "15 درساً علاجياً — وكل درس ينتهي بمهمة لليلة",
+
+  searchLabel: "ابحثي في المكتبة",
+  searchPlaceholder: "ابحثي: انحدار، قيلولة، سهرة...",
+  filterAll: "الكل",
+  filterRegression: "الانحدارات",
+  filterNap: "القيلولة",
+  filterBehavior: "السلوكيات",
+  filterContext: "السياق",
+  filterDad: "للأب",
+  resultsCount: "{count} درس",
+  noResults: "لا درس بهذه الكلمة — جرّبي «انحدار» أو «قيلولة» أو «سهرة».",
+  minutesLabel: "{minutes} د",
+  openLesson: "افتحي الدرس",
+
+  backToLibrary: "رجوع إلى المكتبة",
+  taskTitle: "مهمة الليلة",
+  addTask: "أضيفي مهمة الليلة إلى خطتي",
+  taskAdded: "أضفنا المهمة إلى خطة الليلة",
+  taskAlready: "المهمة في خطة الليلة بالفعل",
+
+  nightTasksTitle: "مهام الليلة من المكتبة",
+  nightTasksEmpty:
+    "لا مهام بعد — اختاري درساً من المكتبة وأضيفي مهمة الليلة إلى خطتك.",
+  nightTaskDone: "أُنجزت",
+  nightTaskOpen: "افتحي المهمة",
+} as const;
+
+type LibraryKeys = keyof typeof libraryAr;
+
+export const LIBRARY: Record<Lang, Record<LibraryKeys, string>> = {
+  ar: libraryAr,
+  en: {
+    docTitle: "Sleep library",
+    headerTitle: "Sleep library",
+    headerBody:
+      "15 practical lessons — every one ends with a task for tonight",
+
+    searchLabel: "Search the library",
+    searchPlaceholder: "Search: regression, nap, late evening...",
+    filterAll: "All",
+    filterRegression: "Regressions",
+    filterNap: "Naps",
+    filterBehavior: "Habits",
+    filterContext: "Context",
+    filterDad: "For dad",
+    resultsCount: "{count} lessons",
+    noResults:
+      "No lesson matches that word — try “regression”, “nap” or “evening”.",
+    minutesLabel: "{minutes} min",
+    openLesson: "Open the lesson",
+
+    backToLibrary: "Back to the library",
+    taskTitle: "Tonight's task",
+    addTask: "Add tonight's task to my plan",
+    taskAdded: "The task is in tonight's plan",
+    taskAlready: "That task is already in tonight's plan",
+
+    nightTasksTitle: "Tonight's tasks from the library",
+    nightTasksEmpty:
+      "No tasks yet — open a lesson in the library and add its task to your plan.",
+    nightTaskDone: "Done",
+    nightTaskOpen: "Open the task",
+  },
+};
+
+// ---------------------- مهام الليلة (تظهر في خطة اليوم) ----------------------
+
+export const NIGHT_TASKS: Record<Lang, Record<string, string>> = {
+  ar: {
+    title: "مهام الليلة من المكتبة",
+    empty:
+      "لا مهام بعد — اختاري درساً من المكتبة وأضيفي مهمة الليلة إلى خطتك.",
+    done: "أُنجزت",
+    openLibrary: "المكتبة",
+    added: "أضفنا المهمة إلى خطة الليلة.",
+  },
+  en: {
+    title: "Tonight's tasks from the library",
+    empty:
+      "No tasks yet — open a lesson in the library and add its task to your plan.",
+    done: "Done",
+    openLibrary: "Library",
+    added: "The task is in tonight's plan.",
+  },
+};

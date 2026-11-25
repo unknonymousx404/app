@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, CalendarClock, MessageCircle, Plus } from "lucide-react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
+import { ArrowUp, BookOpen, CalendarClock, MessageCircle, Plus } from "lucide-react";
 import { TabBar } from "@/components/nav/tabbar";
 import { Button } from "@/components/ui/button";
 import { ageParts, localIsoDate } from "@/lib/age";
@@ -18,8 +19,19 @@ import { DEMO_PROFILE, isProfileComplete, useProfile } from "@/lib/store/profile
 import { usePlan } from "@/lib/store/plan";
 import { useAdjustments } from "@/lib/store/adjustments";
 
-function TypingDots({ label }: { label: string }) {
-  return (
+// بوابة التركيب: الخادم يعرض الهيكل، والعميل يبني الخطة.
+// بوابة التركيب تمنع قراءة الوقت أثناء التصيير المسبق (Next 16).
+function subscribeToHydration(): () => void {
+  return () => {};
+}
+function getHydrated(): boolean {
+  return true;
+}
+function getHydratedOnServer(): boolean {
+  return false;
+}
+
+function TypingDots({ label }: { label: string }) {  return (
     <div role="status" aria-label={label} className="flex items-center gap-1.5 text-xs text-nlo">
       <span>{label}</span>
       <span className="flex gap-1" aria-hidden="true">
@@ -64,12 +76,23 @@ export function Screen07() {
   const idleTimer = useRef<number | null>(null);
 
   const profile = useMemo(() => (isProfileComplete(profileState) ? profileState : DEMO_PROFILE), [profileState]);
+
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydrated,
+    getHydratedOnServer,
+  );
+
+  // لا يُقرأ الوقت إلا بعد التركيب — Next 16 يرفض `new Date()` في تصيير
+  // مسبق داخل مكوّن عميل.
+  const today = useMemo(() => (hydrated ? new Date() : null), [hydrated]);
+
   const plan = useMemo(() => {
     if (storedPlan) return storedPlan;
-    const today = new Date();
+    if (!today) return null;
     const age = ageParts(profile.birthDate, today) ?? { months: 0, days: 0 };
     return buildFirstPlan(profile, ageRulesForMonths(age.months), today);
-  }, [profile, storedPlan]);
+  }, [profile, storedPlan, today]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -104,7 +127,7 @@ export function Screen07() {
   const submitQuestion = (event: FormEvent) => {
     event.preventDefault();
     const value = question.trim();
-    if (!value || typing) return;
+    if (!value || typing || !plan) return;
     const now = new Date().toISOString();
     const motherId = `mother-${Date.now()}`;
     addMessage({ id: motherId, role: "mother", text: value, createdAt: now });
@@ -113,14 +136,14 @@ export function Screen07() {
     const answer = buildBaseAnswer({ lang, question: value, profile, plan, adjustmentsCount: profileState.adjustments?.length ?? 0, lastSummary: profileState.chatSummaries?.at(-1) });
     const answerId = `raha-${Date.now()}`;
     window.setTimeout(() => {
-      addMessage({ id: answerId, role: "raha", text: answer.text, createdAt: new Date().toISOString(), template: answer.template });
+      addMessage({ id: answerId, role: "raha", text: answer.text, createdAt: new Date().toISOString(), template: answer.template, lessonId: answer.lessonId });
       setTyping(false);
       setRevealed((current) => ({ ...current, [answerId]: answer.text }));
     }, 650);
   };
 
   const addTonightAdjustment = (message: ChatMessage) => {
-    if (adjustmentDone.includes(message.id)) return;
+    if (adjustmentDone.includes(message.id) || !plan) return;
     const from = plan.bedtime;
     const to = formatClock(parseClock(from) - 5);
     const adjustment: Adjustment = {
@@ -144,7 +167,14 @@ export function Screen07() {
     setTomorrowDone((current) => [...current, message.id]);
   };
 
-  const age = ageParts(profile.birthDate, new Date()) ?? { months: 0, days: 0 };
+  const age = useMemo(
+    () =>
+      (today ? ageParts(profile.birthDate, today) : null) ?? {
+        months: 0,
+        days: 0,
+      },
+    [profile.birthDate, today],
+  );
 
   return (
     <main className="flex h-dvh justify-center bg-night-deep sm:items-center">
@@ -171,6 +201,15 @@ export function Screen07() {
                     </section>
                   ) : (
                     <div className="mt-3 space-y-2 rounded-2xl border border-gold/20 bg-nsoft/50 p-3">
+                      {message.lessonId ? (
+                        <Link
+                          href={`/library?lesson=${encodeURIComponent(message.lessonId)}`}
+                          className="flex min-h-11 w-full items-center justify-start gap-2 rounded-xl border border-gold/30 bg-gold/10 px-3 text-xs font-normal text-gold hover:bg-gold/20"
+                        >
+                          <BookOpen aria-hidden="true" className="h-4 w-4" />
+                          {t.lessonLink}
+                        </Link>
+                      ) : null}
                       <Button type="button" onClick={() => addTonightAdjustment(message)} disabled={adjustmentDone.includes(message.id)} className="min-h-11 w-full justify-start rounded-xl border border-gold/30 bg-gold/10 px-3 text-start text-xs font-normal text-gold hover:bg-gold/20 disabled:opacity-70"><Plus aria-hidden="true" className="h-4 w-4" />{adjustmentDone.includes(message.id) ? t.adjustmentAdded : t.addAdjustment}</Button>
                       <Button type="button" onClick={() => askTomorrow(message)} disabled={tomorrowDone.includes(message.id)} className="min-h-11 w-full justify-start rounded-xl border border-nline bg-nchip/40 px-3 text-start text-xs font-normal text-nmd hover:bg-nchip hover:text-nhi disabled:opacity-70"><CalendarClock aria-hidden="true" className="h-4 w-4" />{tomorrowDone.includes(message.id) ? t.tomorrowAdded : t.askTomorrow}</Button>
                     </div>

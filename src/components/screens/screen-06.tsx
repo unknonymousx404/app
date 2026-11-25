@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import {
   ArrowLeft,
   Check,
@@ -10,9 +11,11 @@ import {
   X,
 } from "lucide-react";
 import { TabBar } from "@/components/nav/tabbar";
+import { NightTasksCard } from "@/components/screens/night-tasks-card";
 import { Button } from "@/components/ui/button";
 import { ageParts, localIsoDate } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
+import { survivalGuideForAge } from "@/lib/content/library";
 import { ageRulesForMonths } from "@/lib/engine/age-rules";
 import {
   applyAdjustments,
@@ -290,6 +293,12 @@ export function Screen06() {
 
   const rules = useMemo(() => ageRulesForMonths(age.months), [age.months]);
 
+  // دليل النجاة المناسب لعمر ليان — يفتح من وضع الطوارئ (docs/engine.md §4).
+  const survivalLesson = useMemo(
+    () => survivalGuideForAge(age.months),
+    [age.months],
+  );
+
   // خطة الأمس: الأصل المحفوظ مع خطة اليوم إن أُعيد فتح اليوم نفسه،
   // وإلا خطة الأمس المحفوظة، وإلا خطة أولى مولدة من الملف.
   const base = useMemo<FirstPlan | null>(() => {
@@ -524,13 +533,13 @@ export function Screen06() {
                 {t.emergencyNote}
               </p>
 
-              <p
-                aria-disabled="true"
-                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-dashed border-nedge px-3.5 text-xs text-ndim"
+              <Link
+                href={`/library?lesson=${encodeURIComponent(survivalLesson.id)}`}
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3.5 text-xs text-gold"
               >
                 <ShieldCheck aria-hidden="true" className="h-4 w-4" />
                 {t.survivalLink}
-              </p>
+              </Link>
               <p className="mt-2 text-[11px] text-ndim">{t.survivalHint}</p>
             </section>
           ) : shownAdjustments.length > 0 ? (
@@ -622,6 +631,8 @@ export function Screen06() {
             </ul>
           </section>
 
+          <NightTasksCard date={todayIso} />
+
           <div className="mt-6">
             <Button
               type="button"
@@ -632,12 +643,20 @@ export function Screen06() {
             </Button>
 
             {acknowledged ? (
-              <p
-                role="status"
-                className="mt-3 text-center text-xs leading-relaxed text-ngreen"
-              >
-                {t.ackNotice}
-              </p>
+              <>
+                <p
+                  role="status"
+                  className="mt-3 text-center text-xs leading-relaxed text-ngreen"
+                >
+                  {t.ackNotice}
+                </p>
+                <Link
+                  href="/routine"
+                  className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-gold/40 bg-gold/10 px-6 text-sm font-normal text-gold hover:bg-gold/20"
+                >
+                  {t.openRoutine}
+                </Link>
+              </>
             ) : null}
           </div>
 

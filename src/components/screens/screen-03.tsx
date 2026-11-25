@@ -9,8 +9,10 @@ import {
   type Ref,
 } from "react";
 import { toBlob } from "html-to-image";
+import Link from "next/link";
 import { ChevronDown, Share2, Sparkles } from "lucide-react";
 import { TabBar } from "@/components/nav/tabbar";
+import { NightTasksCard } from "@/components/screens/night-tasks-card";
 import { Button } from "@/components/ui/button";
 import { ageParts } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
@@ -646,14 +648,24 @@ export function Screen03() {
             </p>
           </section>
 
+          <NightTasksCard date={plan.date} />
+
           <div className="mt-7">
             {started ? (
-              <p
-                role="status"
-                className="rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3 text-center text-sm leading-relaxed text-gold"
-              >
-                {fillText(t.startedNotice, { time: plan.routineStart })}
-              </p>
+              <>
+                <p
+                  role="status"
+                  className="rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3 text-center text-sm leading-relaxed text-gold"
+                >
+                  {fillText(t.startedNotice, { time: plan.routineStart })}
+                </p>
+                <Link
+                  href="/routine"
+                  className="mt-3 flex h-12 w-full items-center justify-center rounded-full bg-gold px-6 text-base font-normal text-goldink hover:bg-gold/90 focus-visible:ring-gold/60"
+                >
+                  {t.openRoutine}
+                </Link>
+              </>
             ) : (
               <Button
                 type="button"

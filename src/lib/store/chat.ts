@@ -9,6 +9,8 @@ export interface ChatMessage {
   text: string;
   createdAt: string;
   template?: string;
+  /** الدرس الذي يوسّد به الرد — قابل للفتح مباشرة في المكتبة. */
+  lessonId?: string;
 }
 
 interface ChatState {
