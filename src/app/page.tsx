@@ -201,20 +201,29 @@ export default function Home() {
         </div>
       </header>
 
-      {/* زر البداية في منتصف الصفحة */}
-      <Button
-        asChild
-        className="h-12 w-full max-w-xs rounded-full bg-gold px-8 text-base font-normal text-goldink hover:bg-gold/90 focus-visible:ring-gold/60"
-      >
-        <Link href="/profile">
-          <span
-            key={lang}
-            className={`lang-swap ${lang === "en" ? "font-latin font-light" : "font-arabic"}`}
-          >
-            {t.startFree}
-          </span>
+      {/* زر البداية + طريق المؤسسين — الاثنان في منتصف الصفحة */}
+      <div className="flex w-full max-w-xs flex-col items-center gap-3">
+        <Button
+          asChild
+          className="h-12 w-full rounded-full bg-gold px-8 text-base font-normal text-goldink hover:bg-gold/90 focus-visible:ring-gold/60"
+        >
+          <Link href="/profile">
+            <span
+              key={lang}
+              className={`lang-swap ${lang === "en" ? "font-latin font-light" : "font-arabic"}`}
+            >
+              {t.startFree}
+            </span>
+          </Link>
+        </Button>
+
+        <Link
+          href="/waitlist"
+          className="flex min-h-11 items-center justify-center rounded-full px-4 text-sm text-nlo transition-colors duration-200 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+        >
+          {t.foundingLink}
         </Link>
-      </Button>
+      </div>
     </main>
   );
 }

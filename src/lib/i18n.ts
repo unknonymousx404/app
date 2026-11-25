@@ -7,6 +7,7 @@ export type Lang = "ar" | "en";
 
 const welcomeAr = {
   startFree: "ابدئي مجاناً — بلا بطاقة",
+  foundingLink: "احجزي مقعدك المؤسس",
   languageLabel: "اختيار اللغة",
   arabicLabel: "العربية",
   englishLabel: "English",
@@ -19,6 +20,7 @@ export const WELCOME: Record<Lang, Record<WelcomeKeys, string>> = {
   ar: welcomeAr,
   en: {
     startFree: "Start free — no card needed",
+    foundingLink: "Reserve a founding seat",
     languageLabel: "Choose language",
     arabicLabel: "العربية",
     englishLabel: "English",
@@ -271,6 +273,129 @@ export const TABBAR: Record<Lang, Record<TabbarKeys, string>> = {
     library: "Library",
     progress: "Progress",
     soon: "Coming in the next few days",
+  },
+};
+
+// الشاشة 10 — العرض والاشتراك: السعر بعدالة معلنة.
+// كل النصوص حرفياً من docs/screens.md § الشاشة 10.
+const offerAr = {
+  docTitle: "العرض والاشتراك",
+  title: "انضمي إلى المؤسسين",
+  subtitle: "عرض ما قبل الإطلاق — 200 مقعد فقط، والعداد حقيقي",
+
+  foundingEyebrow: "عضوية مؤسِّسة",
+  foundingPrice: "69$",
+  foundingUnit: "مرة واحدة / مدى الحياة",
+  foundingBody:
+    "كل ما في راحة الآن وكل تحديثات السنة الأولى — بدلاً من 12$ شهرياً للأعضاء اللاحقين",
+
+  subscriptionTitle: "الاشتراك العادي",
+  subscriptionPrice: "12$",
+  subscriptionUnit: "شهرياً",
+  annualBadge: "الأوفر",
+  annualLine: "سنوي: 79$ — أي 6.6$ شهرياً فعلياً",
+  savingLine: "وفّري نحو 41$ في السنة مقابل Huckleberry Premium",
+
+  compareTitle: "المقارنة المعلنة",
+  compareConsultantLabel: "استشاري نوم متخصص",
+  compareConsultantPrice: "800$+",
+  compareCourseLabel: "دورة فيديو مسجلة (TCB)",
+  compareCoursePrice: "179$",
+  compareTrackingLabel: "تطبيق تتبع (Huckleberry)",
+  compareTrackingPrice: "14.99$/شهر",
+  compareCoachLabel: "مدرب عربي (ChildRoo)",
+  compareCoachPrice: "19.99$/شهر",
+  compareRahaLabel: "راحة — مدرب يتكيف يومياً",
+  compareRahaPrice: "6.6$/شهر فعلياً",
+
+  cta: "احجزي مقعدك المؤسس",
+  trustNote: "ضمان استرداد 14 يوماً · إلغاء بضغطة واحدة · لا رسوم خفية",
+} as const;
+
+type OfferKeys = keyof typeof offerAr;
+
+export const OFFER: Record<Lang, Record<OfferKeys, string>> = {
+  ar: offerAr,
+  en: {
+    docTitle: "Offer & plans",
+    title: "Join the founders",
+    subtitle: "Pre-launch offer — 200 seats only, and the counter is real",
+
+    foundingEyebrow: "Founding membership",
+    foundingPrice: "$69",
+    foundingUnit: "once / lifetime",
+    foundingBody:
+      "Everything in RahaMoon now, plus every update in the first year — instead of $12 a month for later members",
+
+    subscriptionTitle: "Standard subscription",
+    subscriptionPrice: "$12",
+    subscriptionUnit: "a month",
+    annualBadge: "Best value",
+    annualLine: "Annual: $79 — that's $6.6 a month in practice",
+    savingLine: "Save about $41 a year against Huckleberry Premium",
+
+    compareTitle: "The comparison, in the open",
+    compareConsultantLabel: "Specialist sleep consultant",
+    compareConsultantPrice: "$800+",
+    compareCourseLabel: "Recorded video course (TCB)",
+    compareCoursePrice: "$179",
+    compareTrackingLabel: "Tracking app (Huckleberry)",
+    compareTrackingPrice: "$14.99/month",
+    compareCoachLabel: "Arabic-speaking coach (ChildRoo)",
+    compareCoachPrice: "$19.99/month",
+    compareRahaLabel: "RahaMoon — a coach that adapts daily",
+    compareRahaPrice: "$6.6/month in practice",
+
+    cta: "Reserve your founding seat",
+    trustNote:
+      "14-day money-back guarantee · Cancel in one tap · No hidden fees",
+  },
+};
+
+// صفحة الانتظار — الروح المبكرة من الشاشة 10، بلا دفع اليوم.
+const waitlistAr = {
+  docTitle: "قائمة المؤسسين",
+  title: "انضمي إلى المؤسسين",
+  subtitle: "عرض ما قبل الإطلاق — 200 مقعد فقط، والعداد حقيقي",
+  promise: "ثلاث لمسات صباحاً. صمت ليلي كامل. خطة تتذكر.",
+
+  emailLabel: "بريدك الإلكتروني",
+  emailPlaceholder: "name@example.com",
+  submit: "احجزوا مقعداً مؤسساً",
+  submitting: "نحجز مقعدك...",
+  viewProduct: "شاهدي المنتج",
+
+  empty: "اكتبي بريدك أولاً — ونحجز لك المقعد.",
+  invalid: "يبدو أن البريد غير مكتمل — تحقّقي منه من فضلك.",
+  saved: "تم — مقعدك المؤسس محفوظ. نراسلك عند الإطلاق.",
+  savedLocal: "تم — حفظنا بريدك على جهازك. نراسلك عند الإطلاق.",
+  networkError:
+    "تعذّر الوصول الآن — حفظنا بريدك على جهازك، فلن يضيع.",
+} as const;
+
+type WaitlistKeys = keyof typeof waitlistAr;
+
+export const WAITLIST: Record<Lang, Record<WaitlistKeys, string>> = {
+  ar: waitlistAr,
+  en: {
+    docTitle: "Founders list",
+    title: "Join the founders",
+    subtitle: "Pre-launch offer — 200 seats only, and the counter is real",
+    promise: "Three morning taps. Full night silence. A plan that remembers.",
+
+    emailLabel: "Your email",
+    emailPlaceholder: "name@example.com",
+    submit: "Reserve a founding seat",
+    submitting: "Holding your seat...",
+    viewProduct: "See the product",
+
+    empty: "Add your email first and we'll hold your seat.",
+    invalid: "That email looks incomplete — please check it.",
+    saved: "Done — your founding seat is saved. We'll write when we launch.",
+    savedLocal:
+      "Done — your email is saved on this device. We'll write when we launch.",
+    networkError:
+      "We couldn't reach the server just now — your email is saved on your device, so it isn't lost.",
   },
 };
 
