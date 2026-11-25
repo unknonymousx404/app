@@ -1,6 +1,8 @@
 // كل نصوص الواجهة تمر من هنا — عربي أولاً ومقابل إنجليزي معتمد.
 // راجع docs/i18n.md قبل إضافة أي مفتاح جديد.
 
+import type { PlanReason, PlanReasonCode } from "@/lib/engine/first-plan";
+
 export type Lang = "ar" | "en";
 
 const welcomeAr = {
@@ -72,7 +74,6 @@ const profileAr = {
   summaryGoal: "أول هدف",
   doneNote: "محفوظ على جهازك — لا بريد ولا كلمة سر.",
   doneCta: "ابنِ خطتي الأولى",
-  planTomorrow: "الشاشة 03 تُبنى غداً — ستعودين إلى الرئيسية.",
   home: "العودة للرئيسية",
 } as const;
 
@@ -129,10 +130,259 @@ export const PROFILE: Record<Lang, Record<ProfileKeys, string>> = {
     summaryGoal: "First goal",
     doneNote: "Saved on your device — no email, no password.",
     doneCta: "Build my first plan",
-    planTomorrow: "Screen 03 is being built tomorrow — taking you home.",
     home: "Back to home",
   },
 };
+
+// الشاشة 03 — الخطة الأولى: لحظة القيمة.
+// كل النصوص من docs/screens.md § الشاشة 03، والقيم المتغيرة تُملأ من المحرك.
+const planAr = {
+  docTitle: "خطة اليوم",
+  headerTitle: "خطة ليان — اليوم الأول",
+  headerSubline: "ليان · {age}",
+
+  tonightTitle: "جدول الليلة",
+  tonightHint: "اضغطي أي محطة لترى سببها",
+
+  timelineRoutine: "بداية روتين التهدئة",
+  timelineFeed: "آخر رضعة",
+  timelineBed: "وضع في السرير يقظاً",
+  timelineSleep: "النوم المتوقع",
+
+  detailRoutine: "بعد صلاة العشاء بربع ساعة",
+  detailFeed: "بلا نوم بعدها — فصل التغذية عن النوم بـ20 دقيقة",
+  detailBed: "ضعيها في السرير يقظاً — الهدف: تهدأ بنفسها خلال 15 دقيقة",
+  detailSleep: "تقدير أولي — يتحدّث يومياً",
+
+  pillarsTitle: "ركائز خطتك الثلاث",
+  pillarTimingTitle: "توقيت متقدم {advance} دقيقة",
+  pillarTimingSubtitle: "من {from} إلى {to} — داخل نافذة العمر",
+  pillarRoutineTitle: "روتين ثابت من 4 خطوات",
+  pillarRoutineSubtitle: "35 دقيقة · الترتيب نفسه كل ليلة",
+  pillarResponseTitle: "استجابة هادئة عند الاستيقاظ",
+  pillarResponseFixed: "نفس الرد الهادئ في كل مرة",
+  pillarResponseRandom: "ثبات بدل التبديل بين الحمل والهز",
+  pillarResponseEarly: "عتمة وهدوء حتى الصباح",
+
+  whyTitle: "لماذا هذه الخطة تحديداً؟",
+  whyBody:
+    "مبنية على عمر ليان ({age}) ونمط استيقاظها الذي اخترتِه. اضغطي أي عنصر لتري سببه كاملاً — لا قرارات خفية في راحة.",
+  whyLabel: "السبب",
+  closeReason: "إغلاق السبب",
+
+  startCta: "حسناً — ابدئي الليلة",
+  startedNotice: "تم — خطتك لهذه الليلة جاهزة. نبدأ {time}.",
+
+  shareCta: "شاركي الخطة",
+  shareAria: "مشاركة خطة الليلة كصورة",
+  sharePreviewTitle: "معاينة الصورة",
+  sharePreviewHint: "هذه هي الصورة التي ستُشارك — بلا بيانات خاصة.",
+  shareSave: "حفظ الصورة",
+  shareClose: "إغلاق",
+  shareWorking: "جاري تجهيز الصورة...",
+  shareDone: "تم تجهيز الصورة — بلا أي معلومات خاصة.",
+  shareError: "تعذّر إنشاء الصورة. جرّبي مرة أخرى.",
+  shareTitle: "خطة الليلة — راحة",
+  shareCardEyebrow: "من راحة",
+  shareCardTitle: "خطة الليلة",
+  shareCardTagline: "ثلاث لمسات صباحاً. صمت ليلي كامل. خطة تتذكر.",
+  shareCardFooter: "راحة · RahaMoon — مدرّب نوم الرضّع",
+  shareNote: "صورة نظيفة — بلا اسم أو عمر أو نمط استيقاظ.",
+} as const;
+
+type PlanKeys = keyof typeof planAr;
+
+export const PLAN: Record<Lang, Record<PlanKeys, string>> = {
+  ar: planAr,
+  en: {
+    docTitle: "Today's plan",
+    headerTitle: "Layan's plan — Day one",
+    headerSubline: "Layan · {age}",
+
+    tonightTitle: "Tonight's schedule",
+    tonightHint: "Tap any step to see why",
+
+    timelineRoutine: "Wind-down routine begins",
+    timelineFeed: "Last feed",
+    timelineBed: "Into bed, awake",
+    timelineSleep: "Expected sleep",
+
+    detailRoutine: "Fifteen minutes after Isha",
+    detailFeed: "No sleep after it — feeding separated from sleep by 20 minutes",
+    detailBed: "Place them in bed awake — goal: self-settle within 15 minutes",
+    detailSleep: "An initial estimate — updates daily",
+
+    pillarsTitle: "Your three foundations",
+    pillarTimingTitle: "{advance} minutes earlier",
+    pillarTimingSubtitle: "From {from} to {to} — inside the age window",
+    pillarRoutineTitle: "A steady 4-step routine",
+    pillarRoutineSubtitle: "35 minutes · same order every night",
+    pillarResponseTitle: "A calm response to wake-ups",
+    pillarResponseFixed: "The same calm reply every time",
+    pillarResponseRandom: "Consistency instead of switching holds",
+    pillarResponseEarly: "Dark and quiet until morning",
+
+    whyTitle: "Why this plan, specifically?",
+    whyBody:
+      "Built on Layan's age ({age}) and the wake pattern you chose. Tap any item to see its full reason — no hidden decisions in RahaMoon.",
+    whyLabel: "Why",
+    closeReason: "Close reason",
+
+    startCta: "Okay — start tonight",
+    startedNotice: "Done — tonight's plan is set. We start at {time}.",
+
+    shareCta: "Share the plan",
+    shareAria: "Share tonight's plan as an image",
+    sharePreviewTitle: "Image preview",
+    sharePreviewHint: "This is the image you'll share — no private details.",
+    shareSave: "Save image",
+    shareClose: "Close",
+    shareWorking: "Preparing the image...",
+    shareDone: "Image ready — with no private details.",
+    shareError: "Couldn't create the image. Please try again.",
+    shareTitle: "Tonight's plan — RahaMoon",
+    shareCardEyebrow: "From RahaMoon",
+    shareCardTitle: "Tonight's plan",
+    shareCardTagline:
+      "Three morning taps. Full night silence. A plan that remembers.",
+    shareCardFooter: "RahaMoon — Baby Sleep Coach",
+    shareNote: "A clean image — no name, age, or wake pattern.",
+  },
+};
+
+// شريط التنقل السفلي — من الشاشة 03 فصاعداً.
+const tabbarAr = {
+  navAria: "التنقل الرئيسي",
+  today: "اليوم",
+  ask: "اسألي راحة",
+  library: "المكتبة",
+  progress: "تقدمي",
+  soon: "قريباً في الأيام القادمة",
+} as const;
+
+type TabbarKeys = keyof typeof tabbarAr;
+
+export const TABBAR: Record<Lang, Record<TabbarKeys, string>> = {
+  ar: tabbarAr,
+  en: {
+    navAria: "Main navigation",
+    today: "Today",
+    ask: "Ask Raha",
+    library: "Library",
+    progress: "Progress",
+    soon: "Coming in the next few days",
+  },
+};
+
+// ---------------------------- أسباب الخطة ----------------------------
+// قالب واحد لكل سبب. القيم تُملأ من PlanReason.params — لا نص في المكونات.
+
+const planReasonsAr: Record<PlanReasonCode, string> = {
+  routine:
+    "نبدأ {time} — بعد صلاة العشاء بربع ساعة، ثم {routineMinutes} دقيقة روتين هادئ. آخر نافذة يقظة لعمر {ageMonths} أشهر هي {wakeMin}–{wakeMax} ساعة، وموعد النوم {bedtime} يقع داخل نطاقها.",
+  feed:
+    "آخر رضعة {time} — قبل السرير بـ{gap} دقيقة. نفصل التغذية عن النوم حتى لا ترتبط الرضاعة بالنوم، وتبقى لديها فرصة أن تهدأ بنفسها.",
+  bed:
+    "نضعها في السرير {time} وهي يقظة لكن هادئة. نمنحها {settle} دقيقة لتهدأ بنفسها؛ إن طال الوقت نستجيب بهدوء وبالحد الأدنى من الضوء، بلا حمل أو هز.",
+  sleep:
+    "نتوقع النوم حول {time}. لعمر {ageMonths} أشهر، النوم الليلي المتوقع {nightMin}–{nightMax} ساعة. هذا تقدير أولي يتحدّث كل صباح — لا وعد ولا قياس ليلي.",
+  "pillar-timing":
+    "نبدأ {to} بدل {from} — تقديم {advance} دقيقة فقط. خطوة صغيرة تحافظ على النافذة العمرية وتبني ضغط نوم كافياً بلا إرهاق.",
+  "pillar-routine":
+    "أربع خطوات، {minutes} دقيقة، بالترتيب نفسه كل ليلة: حمام دافئ، رضعة، تلاوة أو أنشودة، ثم ضوء خافت. الثبات هو نصف التدريب.",
+  "pillar-response-fixed":
+    "استيقاظات متوقعة في مواعيد متقاربة. نستجيب بهدوء وبالحد الأدنى من الضوء، ونمنحها دقيقتين قبل الحمل — نفس الاستجابة كل مرة.",
+  "pillar-response-random":
+    "استيقاظات غير منتظمة. نثبّت الاستجابة الهادئة نفسها كل مرة، بلا تبديل بين الحمل والهز؛ الثبات يعطيها إشارة أن الليل للنوم.",
+  "pillar-response-early":
+    "استيقاظ فجري. نُبقي الغرفة معتمة وهادئة حتى 6:00، بلا ضوء أو لعب؛ الضوء أول إشارة تعلّمها أن الصباح بدأ.",
+};
+
+const planReasonsEn: Record<PlanReasonCode, string> = {
+  routine:
+    "We start at {time} — fifteen minutes after Isha, then {routineMinutes} minutes of calm routine. The last wake window at {ageMonths} months is {wakeMin}–{wakeMax} hours, and the {bedtime} bedtime sits inside it.",
+  feed:
+    "Last feed at {time} — {gap} minutes before bed. We keep feeding separate from sleep so feeding doesn't become the sleep cue, and self-settling stays possible.",
+  bed:
+    "We place them in bed at {time}, awake but calm. We give them {settle} minutes to settle themselves; if it takes longer, we respond calmly with minimal light — no carrying or rocking.",
+  sleep:
+    "Sleep is expected around {time}. At {ageMonths} months, night sleep is typically {nightMin}–{nightMax} hours. This is an initial estimate that updates every morning — not a promise, and never a night measurement.",
+  "pillar-timing":
+    "We start at {to} instead of {from} — {advance} minutes earlier only. A small step that stays inside the age window and builds enough sleep pressure without exhaustion.",
+  "pillar-routine":
+    "Four steps, {minutes} minutes, in the same order every night: warm bath, feed, recitation or song, then dim light. Consistency is half the training.",
+  "pillar-response-fixed":
+    "Wake-ups at fairly regular times. We respond calmly with minimal light, giving them two minutes before picking them up — the same response every time.",
+  "pillar-response-random":
+    "Unpredictable wake-ups. We keep the same calm response every time, without switching between carrying and rocking; consistency tells them night is for sleep.",
+  "pillar-response-early":
+    "Early-morning wake-ups. We keep the room dark and quiet until 6:00, with no light or play; light is the first signal that morning has begun.",
+};
+
+const planProblemNotesAr: Record<string, string> = {
+  "frequent-wakes":
+    " لأن الاستيقاظ المتكرر هو ما يزعجكم الآن، نثبّت موعد النوم أولاً قبل أي تغيير آخر.",
+  "late-sleep":
+    " لأن النوم متأخر، نقدّم الموعد بهذه الدقائق فقط ونثبته قبل أي خطوة أخرى.",
+  "held-sleep":
+    " لأن النوم في الحضن هو التحدي، نضعها في السرير قبل أن تغفو حتى تتدرب على التهدئة الذاتية.",
+};
+
+const planProblemNotesEn: Record<string, string> = {
+  "frequent-wakes":
+    " Since repeated wake-ups are the hardest part right now, we steady bedtime first before changing anything else.",
+  "late-sleep":
+    " Since sleep is running late, we move bedtime earlier by these minutes only and hold it there before the next step.",
+  "held-sleep":
+    " Since sleeping in arms is the challenge, we place them in bed before they fall asleep so self-settling can begin.",
+};
+
+const planGoalNotesAr: Record<string, string> = {
+  "sleep-through":
+    " هدفك الأول ليلة أطول بلا استيقاظ — التقدم الصغير يخدمه بلا صدمة.",
+  "self-settle":
+    " هدفك الأول أن تنام بنفسها — البداية الهادئة هي أول خطوة.",
+  "earlier-bedtime":
+    " هدفك الأول موعد أبكر — هذه أول خطوة نحوه.",
+};
+
+const planGoalNotesEn: Record<string, string> = {
+  "sleep-through":
+    " Your first goal is a longer night without waking — this small step serves it without a shock.",
+  "self-settle":
+    " Your first goal is falling asleep independently — a calm start is the first step.",
+  "earlier-bedtime":
+    " Your first goal is an earlier bedtime — this is the first step toward it.",
+};
+
+/** يملأ قالب نص بقيم مفتاحية — يُستخدم للعناوين والبطاقات أيضاً. */
+export function fillText(
+  template: string,
+  params: Record<string, string | number>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (match, key) => {
+    const value = params[key];
+    return value === undefined ? match : String(value);
+  });
+}
+
+/** يصوغ سبب عنصر خطة بلغة الواجهة، ويضيف ملاحظة المشكلة/الهدف عند الحاجة. */
+export function formatPlanReason(lang: Lang, reason: PlanReason): string {
+  const templates = lang === "ar" ? planReasonsAr : planReasonsEn;
+  let text = fillText(templates[reason.code], reason.params);
+
+  if (reason.code === "bed") {
+    const notes = lang === "ar" ? planProblemNotesAr : planProblemNotesEn;
+    text += notes[String(reason.params.problem)] ?? "";
+  }
+
+  if (reason.code === "pillar-timing") {
+    const notes = lang === "ar" ? planGoalNotesAr : planGoalNotesEn;
+    text += notes[String(reason.params.goal)] ?? "";
+  }
+
+  return text;
+}
 
 // صياغة العمر باللغتين: «6 أشهر و9 أيام — ضمن نافذة تدريب مثالية».
 function arabicCount(
@@ -174,4 +424,19 @@ export function formatAge(lang: Lang, months: number, days: number): string {
   if (months === 0) return `${dayText} — ${ageNote}`;
   if (days === 0) return `${monthText} بالضبط — ${ageNote}`;
   return `${monthText} و${dayText} — ${ageNote}`;
+}
+
+/** عمر مختصر لرأس الشاشة 03: «6 أشهر» / "6 months". */
+export function formatAgeMonths(lang: Lang, months: number): string {
+  if (lang === "en") {
+    return `${months} ${months === 1 ? "month" : "months"}`;
+  }
+
+  return arabicCount(
+    months,
+    "شهر واحد",
+    "شهران",
+    "{n} أشهر",
+    "{n} شهراً",
+  );
 }

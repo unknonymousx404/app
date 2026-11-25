@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useId, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -24,7 +18,6 @@ import {
 } from "@/lib/store/profile";
 
 const TOTAL_STEPS = 4;
-const HOME_NOTICE_MS = 2600;
 
 // ------------------------- حالة البداية -------------------------
 // تُقرأ مرة واحدة بعد التركيب: الملف المحفوظ وتاريخ اليوم المحلي.
@@ -198,8 +191,6 @@ export function Screen02() {
   const [answers, setAnswers] = useState<ProfileAnswers>(initial.answers);
   const [step, setStep] = useState(initial.step);
   const [done, setDone] = useState(initial.done);
-  const [notice, setNotice] = useState(false);
-  const noticeTimer = useRef<number | null>(null);
 
   const hydrated = useSyncExternalStore(
     subscribeToHydration,
@@ -217,14 +208,6 @@ export function Screen02() {
         ? `${BRAND.arabic} — ${t.docTitle}`
         : `${BRAND.latin} — ${t.docTitle}`;
   }, [lang, t.docTitle]);
-
-  useEffect(() => {
-    return () => {
-      if (noticeTimer.current !== null) {
-        window.clearTimeout(noticeTimer.current);
-      }
-    };
-  }, []);
 
   if (!hydrated) {
     return (
@@ -311,13 +294,6 @@ export function Screen02() {
     setDone(true);
   };
 
-  const showPlanTomorrow = () => {
-    setNotice(true);
-    noticeTimer.current = window.setTimeout(() => {
-      router.push("/");
-    }, HOME_NOTICE_MS);
-  };
-
   const selectedProblem = problemOptions.find(
     (option) => option.value === answers.worstProblem,
   )?.title;
@@ -385,22 +361,13 @@ export function Screen02() {
             </dl>
 
             <div className="mt-auto pt-8">
-              {notice ? (
-                <p
-                  role="status"
-                  className="rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3 text-center text-sm leading-relaxed text-gold"
-                >
-                  {t.planTomorrow}
-                </p>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={showPlanTomorrow}
-                  className="h-12 w-full rounded-full bg-gold px-6 text-base font-normal text-goldink hover:bg-gold/90 focus-visible:ring-gold/60"
-                >
-                  {t.doneCta}
-                </Button>
-              )}
+              <Button
+                type="button"
+                onClick={() => router.push("/plan")}
+                className="h-12 w-full rounded-full bg-gold px-6 text-base font-normal text-goldink hover:bg-gold/90 focus-visible:ring-gold/60"
+              >
+                {t.doneCta}
+              </Button>
 
               <Link
                 href="/"

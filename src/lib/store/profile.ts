@@ -32,6 +32,14 @@ export const EMPTY_ANSWERS: ProfileAnswers = {
 // العائلة المرجعية: ليان، مولودة 15 مايو 2026 — تاريخ افتراضي للعرض التجريبي.
 export const DEMO_BIRTH_DATE = "2026-05-15";
 
+// ملف العائلة المرجعية الكامل — يُستخدم حين تُفتح الشاشة 03 قبل إتمام الشاشة 02.
+export const DEMO_PROFILE: GrowingProfile = {
+  birthDate: DEMO_BIRTH_DATE,
+  worstProblem: "frequent-wakes",
+  wakePattern: "two-three-fixed",
+  priorityGoal: "sleep-through",
+};
+
 interface ProfileState extends ProfileAnswers {
   saveProfile: (profile: GrowingProfile) => void;
   resetProfile: () => void;
@@ -70,83 +78,7 @@ export function isProfileComplete(
 }
 
 // ---------------------------- حساب العمر ----------------------------
+// المنطق النقي في src/lib/age.ts ويُعاد تصديره هنا للتوافق مع استيرادات
+// الشاشات الحالية (screen-02) والمحرك.
 
-interface IsoDate {
-  year: number;
-  month: number;
-  day: number;
-}
-
-function parseIsoDate(value: string): IsoDate | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return null;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-
-  // رفض التواريخ غير الموجودة (مثل 30 فبراير).
-  const check = new Date(Date.UTC(year, month - 1, day));
-  if (
-    check.getUTCFullYear() !== year ||
-    check.getUTCMonth() !== month - 1 ||
-    check.getUTCDate() !== day
-  ) {
-    return null;
-  }
-
-  return { year, month, day };
-}
-
-// رقم اليوم في UTC — يمنع انزياح الساعة الصيفية والتوقيت المحلي.
-function dayNumber(date: Date): number {
-  return Math.floor(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000,
-  );
-}
-
-function birthDayNumber(birthDate: string): number | null {
-  const birth = parseIsoDate(birthDate);
-  if (!birth) return null;
-  return Math.floor(
-    Date.UTC(birth.year, birth.month - 1, birth.day) / 86_400_000,
-  );
-}
-
-/** العمر بالأيام من تاريخ الميلاد حتى اليوم — null إذا كان التاريخ غير صالح. */
-export function ageInDays(
-  birthDate: string,
-  today: Date = new Date(),
-): number | null {
-  const birth = birthDayNumber(birthDate);
-  if (birth === null) return null;
-  return dayNumber(today) - birth;
-}
-
-/** العمر بالأشهر والأيام التقويمية — null إذا كان التاريخ غير صالح أو في المستقبل. */
-export function ageParts(
-  birthDate: string,
-  today: Date = new Date(),
-): { months: number; days: number } | null {
-  const birth = parseIsoDate(birthDate);
-  if (!birth) return null;
-
-  const total = ageInDays(birthDate, today);
-  if (total === null || total < 0) return null;
-
-  let months =
-    (today.getFullYear() - birth.year) * 12 + (today.getMonth() + 1 - birth.month);
-  let days = today.getDate() - birth.day;
-
-  if (days < 0) {
-    months -= 1;
-    // عدد أيام الشهر السابق لشهر اليوم.
-    days += new Date(
-      Date.UTC(today.getFullYear(), today.getMonth(), 0),
-    ).getUTCDate();
-  }
-
-  if (months < 0) return null;
-  return { months, days };
-}
+export { ageInDays, ageParts } from "@/lib/age";
