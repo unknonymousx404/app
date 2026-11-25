@@ -1,11 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
 import { WELCOME, type Lang } from "@/lib/i18n";
 import { setLang, useLang } from "@/lib/lang";
+import { DEMO_PROFILE, useProfile } from "@/lib/store/profile";
+import { useNights } from "@/lib/store/nights";
+
+// بوابة التركيب: الخادم يعرض الهيكل، والعميل يعرض الحالة المحفوظة فوراً.
+function subscribeToHydration(): () => void {
+  return () => {};
+}
+function getHydrated(): boolean {
+  return true;
+}
+function getHydratedOnServer(): boolean {
+  return false;
+}
 
 // اللوك-أب: كامل بالعربية، والاسم اللاتيني وحده بالإنجليزية — من docs/brand.md.
 function Lockup({ lang }: { lang: Lang }) {
@@ -70,8 +84,29 @@ function CheckIcon() {
 export default function Home() {
   const lang = useLang();
   const t = WELCOME[lang];
+  const router = useRouter();
+  const saveProfile = useProfile((state) => state.saveProfile);
+  const seedDemoNights = useNights((state) => state.seedDemoNights);
   const [open, setOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
+
+  // وضع العرض للمؤسسين: ?demo=1 يُظهر زراً واحداً يملأ ملف ليان وسبع ليالٍ
+  // ويقفز على خطة معدّلة — سيناريو جاهز بضغطة واحدة (لا يظهر للمستخدم العادي).
+  // بوابة التركيب (useSyncExternalStore) تمنع اختلافاً بين الخادم والعميل.
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydrated,
+    getHydratedOnServer,
+  );
+  const demo =
+    hydrated &&
+    new URLSearchParams(window.location.search).get("demo") === "1";
+
+  const runDemo = () => {
+    saveProfile(DEMO_PROFILE);
+    seedDemoNights();
+    router.push("/plan/today");
+  };
 
   // قلب الوثيقة كاملة عند تبديل اللغة — راجع docs/i18n.md.
   useEffect(() => {
@@ -223,6 +258,16 @@ export default function Home() {
         >
           {t.foundingLink}
         </Link>
+
+        {demo ? (
+          <button
+            type="button"
+            onClick={runDemo}
+            className="mt-1 flex min-h-11 items-center justify-center rounded-full border border-dashed border-nedge/70 px-4 text-xs text-ndim transition-colors duration-200 hover:text-nlo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+          >
+            {t.demoCta}
+          </button>
+        ) : null}
       </div>
     </main>
   );

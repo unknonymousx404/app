@@ -16,6 +16,7 @@ const welcomeAr = {
   languageLabel: "اختيار اللغة",
   arabicLabel: "العربية",
   englishLabel: "English",
+  demoCta: "عرض المؤسسين — سيناريو جاهز",
 } as const;
 
 type WelcomeKeys = keyof typeof welcomeAr;
@@ -29,6 +30,7 @@ export const WELCOME: Record<Lang, Record<WelcomeKeys, string>> = {
     languageLabel: "Choose language",
     arabicLabel: "العربية",
     englishLabel: "English",
+    demoCta: "Founders demo — ready scenario",
   },
 };
 

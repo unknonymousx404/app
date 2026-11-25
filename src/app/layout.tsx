@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { El_Messiri, Playpen_Sans_Arabic } from "next/font/google";
+import { El_Messiri } from "next/font/google";
 import localFont from "next/font/local";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
@@ -20,25 +20,29 @@ const agravePro = localFont({
   display: "swap",
 });
 
-// Playpen Sans Arabic للعناصر العربية البارزة (الشعار والزر والمبدل).
-// عبر next/font/google ليصل مُجزّأً (~44KB) بدل الملف الكامل (~758KB).
-const playpenArabic = Playpen_Sans_Arabic({
-  subsets: ["arabic", "latin"],
-  weight: "variable",
-  variable: "--font-playpen-arabic",
-  display: "swap",
-  adjustFontFallback: false,
-});
-
 // الإنجليزية هي اللغة الافتراضية — تُبنى البيانات الوصفية عليها قبل hydration.
 export const metadata: Metadata = {
   title: BRAND.storeEn,
   description: BRAND.taglineEn,
+  applicationName: BRAND.latin,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: BRAND.latin,
+  },
+  icons: {
+    icon: [{ url: "/icon-crescent.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon-crescent.svg", type: "image/svg+xml" }],
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: "#101735",
   colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -46,7 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       dir="ltr"
-      className={`${elMessiri.variable} ${agravePro.variable} ${playpenArabic.variable} dark h-full antialiased`}
+      className={`${elMessiri.variable} ${agravePro.variable} dark h-full antialiased`}
     >
       <body className="min-h-full bg-night-deep font-sans text-nhi">
         {children}
