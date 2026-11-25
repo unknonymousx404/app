@@ -276,6 +276,108 @@ export const TABBAR: Record<Lang, Record<TabbarKeys, string>> = {
   },
 };
 
+// الشاشة 05 — تسجيل الليلة: ثلاث لمسات صباحاً.
+// النصوص من docs/screens.md § الشاشة 05، والقيم المتغيرة تُملأ بـ fillText.
+const nightsAr = {
+  docTitle: "تسجيل الليلة",
+  greeting: "صباح الخير — كيف كانت الليلة؟",
+  childName: "ليان",
+  subline: "{name} · {age}",
+
+  cardSleepTitle: "نامت {name} الساعة؟",
+  cardSleepHint: "من خطة الليلة نفسها",
+  otherTime: "وقت آخر",
+  otherTimeAria: "اختيار وقت نوم آخر — يفتح منتقي الوقت",
+  timePickerAria: "وقت نوم {name}",
+
+  cardWakeTitle: "كم مرة استيقظت؟",
+  wakeValueAria: "عدد مرات الاستيقاظ",
+  wakeDecrease: "أنقصي عدد الاستيقاظات",
+  wakeIncrease: "زيدي عدد الاستيقاظات",
+  wakeAverage: "متوسط الأسبوع الماضي: {value}",
+  wakeAverageNone: "هذه أول ليلة نسجلها — المتوسط يظهر من الغد",
+
+  cardMoodTitle: "وأنتم الصباح؟",
+  moodRested: "مرتاحون",
+  moodTired: "متعَبون قليلاً",
+  moodHard: "ليلة صعبة",
+
+  saveCta: "سجّلي — وحدّثي خطة اليوم",
+  emergencyCta: "ليلة صعبة جداً — فعّلي وضع الطوارئ",
+  emergencyOn: "وضع الطوارئ مفعّل — يكتمل غداً مع الشاشة 06",
+  emergencyTone:
+    "كفى اليوم. ثبّتنا كل التوقيتات كما هي بلا أي تعديل، وخفضنا التوقعات. يكتمل البروتوكول غداً مع الشاشة 06.",
+  emergencyBannerTitle: "وضع الطوارئ مفعّل",
+  emergencyBannerBody:
+    "ثبّتنا خطة اليوم كما هي، بلا تعديلات ولا مطاردة. الخطوة التالية تصل غداً مع الشاشة 06.",
+  notice: "كل هذا لا يستهلك ثلاثين ثانية — ثم يصمت التطبيق حتى الغد",
+
+  savedNotice: "تم — خطتك تحدثت. نراك غداً في الصباح.",
+  summaryTitle: "تسجيل الليلة",
+  summarySleep: "نامت الساعة",
+  summaryWakes: "مرات الاستيقاظ",
+  summaryMood: "صباحكم",
+  edit: "تعديل التسجيل",
+
+  devTitle: "أدوات التطوير — لا تظهر للمستخدم",
+  devSeed: "املأي 7 ليالي لليان",
+  devSeeded: "تم — سبع ليالي محفوظة",
+  devClear: "مسح الليالي",
+} as const;
+
+type NightsKeys = keyof typeof nightsAr;
+
+export const NIGHTS: Record<Lang, Record<NightsKeys, string>> = {
+  ar: nightsAr,
+  en: {
+    docTitle: "Night check-in",
+    greeting: "Good morning — how was the night?",
+    childName: "Layan",
+    subline: "{name} · {age}",
+
+    cardSleepTitle: "What time did {name} fall asleep?",
+    cardSleepHint: "From tonight's plan itself",
+    otherTime: "Another time",
+    otherTimeAria: "Pick another sleep time — opens the time picker",
+    timePickerAria: "{name}'s sleep time",
+
+    cardWakeTitle: "How many times did they wake?",
+    wakeValueAria: "Number of wake-ups",
+    wakeDecrease: "One fewer wake-up",
+    wakeIncrease: "One more wake-up",
+    wakeAverage: "Last week's average: {value}",
+    wakeAverageNone: "This is the first night you log — the average starts tomorrow",
+
+    cardMoodTitle: "And your morning?",
+    moodRested: "Rested",
+    moodTired: "A little tired",
+    moodHard: "A hard night",
+
+    saveCta: "Log it — update today's plan",
+    emergencyCta: "A very rough night — turn on emergency mode",
+    emergencyOn: "Emergency mode is on — it completes tomorrow with screen 06",
+    emergencyTone:
+      "Enough for today. Every timing stays fixed with no adjustment, and expectations are lowered. The protocol completes tomorrow with screen 06.",
+    emergencyBannerTitle: "Emergency mode is on",
+    emergencyBannerBody:
+      "Today's plan is fixed exactly as it is, with no adjustments and no chasing. The next step arrives tomorrow with screen 06.",
+    notice:
+      "All of this takes under thirty seconds — then the app goes quiet until tomorrow",
+
+    savedNotice: "Done — your plan has updated. See you tomorrow morning.",
+    summaryTitle: "Tonight's log",
+    summarySleep: "Fell asleep at",
+    summaryWakes: "Wake-ups",
+    summaryMood: "Your morning",
+    edit: "Edit the log",
+
+    devTitle: "Development tools — never shown to users",
+    devSeed: "Fill 7 nights for Layan",
+    devSeeded: "Done — seven nights saved",
+    devClear: "Clear the nights",
+  },
+};
+
 // الشاشة 10 — العرض والاشتراك: السعر بعدالة معلنة.
 // كل النصوص حرفياً من docs/screens.md § الشاشة 10.
 const offerAr = {

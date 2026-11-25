@@ -33,7 +33,8 @@ export function TabBar({ active = "today" }: { active?: TabId }) {
   };
 
   const tabs = [
-    { id: "today" as const, label: t.today, icon: Moon, href: "/plan" },
+    // «اليوم» يمر ببوابة /today: تسجيل الليلة صباحاً، وإلا خطة اليوم.
+    { id: "today" as const, label: t.today, icon: Moon, href: "/today" },
     { id: "ask" as const, label: t.ask, icon: MessageCircle },
     { id: "library" as const, label: t.library, icon: BookOpen },
     { id: "progress" as const, label: t.progress, icon: TrendingUp },
