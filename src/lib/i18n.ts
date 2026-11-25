@@ -672,6 +672,52 @@ export function formatAgeMonths(lang: Lang, months: number): string {
   );
 }
 
+// ---------------------------- الشاشة 07 — اسألي راحة ----------------------------
+const askAr = {
+  docTitle: "اسألي راحة",
+  headerTitle: "اسألي راحة",
+  headerBody: "يجيب من ملف ليان وخطتك، لا من الذاكرة العامة",
+  placeholder: "اسألي أي شيء يؤرقك الليلة...",
+  send: "إرسال السؤال",
+  motherLabel: "رسالتك",
+  rahaLabel: "راحة",
+  typing: "راحة تراجع الملف وتفكر بهدوء...",
+  addAdjustment: "أضيفي التعديل إلى خطة الليلة",
+  adjustmentAdded: "تم — أضفنا التعديل إلى سجل خطة الليلة.",
+  askTomorrow: "وغداً أسأليني ماذا حدث",
+  tomorrowAdded: "تم — سأعيد السؤال غداً صباحاً.",
+  safetyTitle: "الأفضل أن يطمئن عليكِ طبيب",
+  safetyBody: "هذا الوصف يحتاج تقييماً طبياً مباشراً. تواصلي مع طبيب الأطفال أو خدمة الطوارئ المحلية الآن، من فضلك.",
+  empty: "اكتبي سؤالك، وسأربطه بملف ليان وخطة الليلة.",
+  saved: "المحادثة محفوظة على جهازك.",
+  noPlan: "أجهز خطة ليان المحفوظة أولاً، ثم أجيبك.",
+} as const;
+
+type AskKeys = keyof typeof askAr;
+
+export const ASK: Record<Lang, Record<AskKeys, string>> = {
+  ar: askAr,
+  en: {
+    docTitle: "Ask Raha",
+    headerTitle: "Ask Raha",
+    headerBody: "Answers from Layan's profile and your plan, not general memory",
+    placeholder: "Ask anything keeping you up tonight...",
+    send: "Send question",
+    motherLabel: "Your message",
+    rahaLabel: "Raha",
+    typing: "Raha is checking the profile and thinking calmly...",
+    addAdjustment: "Add the adjustment to tonight's plan",
+    adjustmentAdded: "Done — the adjustment is in tonight's plan history.",
+    askTomorrow: "Ask me tomorrow what happened",
+    tomorrowAdded: "Done — I'll ask again tomorrow morning.",
+    safetyTitle: "A doctor should check this",
+    safetyBody: "This needs direct medical assessment. Please contact your baby's doctor or your local emergency service now.",
+    empty: "Ask your question and I'll connect it to Layan's profile and tonight's plan.",
+    saved: "This conversation is saved on your device.",
+    noPlan: "I am loading Layan's saved plan first, then I'll answer.",
+  },
+};
+
 // ---------------------- الشاشة 06 — خطة اليوم المعدّلة ----------------------
 // النصوص من docs/screens.md § الشاشة 06. لا نص صلب في المكوّن.
 

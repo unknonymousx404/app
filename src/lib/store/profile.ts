@@ -12,6 +12,11 @@ export interface GrowingProfile {
   worstProblem: WorstProblem;
   wakePattern: string;
   priorityGoal: string;
+  nights?: unknown[];
+  adjustments?: unknown[];
+  chatSummaries?: string[];
+  routineTemplate?: string;
+  milestones?: string[];
 }
 
 // أثناء جمع الإجابات تكون الحقول فارغة، ثم تُحفظ دفعة واحدة عند إتمام الخطوة الرابعة.
@@ -41,7 +46,10 @@ export const DEMO_PROFILE: GrowingProfile = {
 };
 
 interface ProfileState extends ProfileAnswers {
+  chatSummaries?: string[];
+  adjustments?: unknown[];
   saveProfile: (profile: GrowingProfile) => void;
+  addChatSummary: (summary: string) => void;
   resetProfile: () => void;
 }
 
@@ -50,17 +58,22 @@ export const useProfile = create<ProfileState>()(
     (set) => ({
       ...EMPTY_ANSWERS,
       saveProfile: (profile) => set(profile),
+      addChatSummary: (summary) =>
+        set((state) => ({
+          chatSummaries: [...(state.chatSummaries ?? []), summary].slice(-30),
+        })),
       resetProfile: () => set(EMPTY_ANSWERS),
     }),
     {
       name: "raha.profile",
       version: 1,
       // نحفظ الحقول الأربعة وحدها — لا دوال ولا حالة واجهة.
-      partialize: ({ birthDate, worstProblem, wakePattern, priorityGoal }) => ({
+      partialize: ({ birthDate, worstProblem, wakePattern, priorityGoal, chatSummaries }) => ({
         birthDate,
         worstProblem,
         wakePattern,
         priorityGoal,
+        chatSummaries,
       }),
     },
   ),
