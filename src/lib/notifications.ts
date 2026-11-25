@@ -18,6 +18,15 @@ export type ReminderPermission =
 /** مفتاح يسجّل آخر يوم صُرفت فيه الإشعار — يضمن إشعاراً واحداً في اليوم. */
 const LAST_SENT_KEY = "raha.reminder.lastSent";
 
+/** مفتاح الإشعار النهاري (بعد الظهر) — إشعار لطيف واحد لا يتكرر. */
+const LAST_NUDGE_KEY = "raha.nudge.lastSent";
+
+/**
+ * حدّ الصمت الليلي — لا إشعار بعد هذه الساعة إطلاقاً (docs/engine.md §6).
+ * الحارس هنا في نقطة الإرسال الوحيدة، فلا يمكن لأي مسار جدولة أن يتجاوزه.
+ */
+export const NIGHT_SILENCE_HOUR = 19;
+
 /** أقصى مهلة.setTimeout (‏~24.8 يوماً) — نُعيد التسليح قبلها. */
 const MAX_TIMEOUT = 2_147_483_000;
 
@@ -80,6 +89,9 @@ export function reminderSentToday(): boolean {
 /** يعرض الإشعار الآن. */
 export function showReminder(title: string, body: string): void {
   if (reminderPermission() !== "granted") return;
+
+  // الصمت الليلي مقدّس: لا إشعار عند أو بعد 19:00 — أياً كان سبب الجدولة.
+  if (new Date().getHours() >= NIGHT_SILENCE_HOUR) return;
 
   try {
     new Notification(title, {
@@ -152,6 +164,104 @@ export function scheduleEveningReminder(
       if (!reminderSentToday()) {
         showReminder(options.title, options.body);
         markSentToday();
+      }
+      options.onFire?.();
+      arm();
+    }, delay);
+  };
+
+  arm();
+
+  return () => {
+    if (timer !== null) window.clearTimeout(timer);
+  };
+}
+
+// ------------------------- الإشعار النهاري (بعد الظهر) -------------------------
+// docs/engine.md §6: «إن لم يُسجَّل الصباح: إشعار لطيف واحد بعد الظهر — لا
+// مطاردة ولا عدّاد انقطاع». الحارس الليلي في showReminder يمنع أي إرسال بعد
+// 19:00، وهذا المسار مقصور على فترة ما بعد الظهر أصلاً.
+
+function lastNudgeDate(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_NUDGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function markNudgeSentToday(): void {
+  try {
+    const now = new Date();
+    const pad = (value: number) => String(value).padStart(2, "0");
+    window.localStorage.setItem(
+      LAST_NUDGE_KEY,
+      `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+    );
+  } catch {
+    // التخزين معطّل — نكتفي بالحالة في الجلسة.
+  }
+}
+
+/** هل أُرسل الإشعار النهاري اليوم؟ */
+export function nudgeSentToday(): boolean {
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  return lastNudgeDate() === today;
+}
+
+export interface NudgeOptions {
+  /** HH:mm — وقت الإشعار (بعد الظهر). */
+  time: string;
+  title: string;
+  body: string;
+  /** شرط الإرسال: عادةً «لم يُسجَّل صباح اليوم». */
+  shouldSend: () => boolean;
+  /** يُستدعى بعد الإرسال — لتحديث الواجهة. */
+  onFire?: () => void;
+}
+
+/**
+ * يجدول الإشعار النهاري: إشعار لطيف واحد بعد الظهر إن لم يُسجَّل الصباح،
+ * ثم لا يتكرر في اليوم نفسه. يُعيد دالة إلغاء.
+ */
+export function scheduleAfternoonNudge(
+  options: NudgeOptions,
+): () => void {
+  if (typeof window === "undefined") return () => {};
+
+  let timer: number | null = null;
+
+  const arm = () => {
+    if (timer !== null) window.clearTimeout(timer);
+
+    const now = new Date();
+    const target = nextReminderTime(options.time, now);
+    const delta = target.getTime() - now.getTime();
+
+    let delay: number;
+
+    if (delta > 0) {
+      delay = delta;
+    } else if (delta > -GRACE_MS) {
+      // فُتح التطبيق بعد الموعد بقليل — نُرسله حالاً لا غداً.
+      delay = 1_500;
+    } else {
+      const tomorrow = new Date(target);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      delay = tomorrow.getTime() - now.getTime();
+    }
+
+    if (delay > MAX_TIMEOUT) {
+      timer = window.setTimeout(arm, MAX_TIMEOUT);
+      return;
+    }
+
+    timer = window.setTimeout(() => {
+      if (!nudgeSentToday() && options.shouldSend()) {
+        showReminder(options.title, options.body);
+        markNudgeSentToday();
       }
       options.onFire?.();
       arm();

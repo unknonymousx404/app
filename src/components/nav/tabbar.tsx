@@ -3,12 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BookOpen, MessageCircle, Moon, TrendingUp } from "lucide-react";
-import { TABBAR } from "@/lib/i18n";
+import { localIsoDate } from "@/lib/age";
+import { NOTIFY, TABBAR } from "@/lib/i18n";
 import { useLang } from "@/lib/lang";
+import { scheduleAfternoonNudge } from "@/lib/notifications";
+import { useNights } from "@/lib/store/nights";
 
 type TabId = "today" | "ask" | "library" | "progress";
 
 const SOON_NOTICE_MS = 2800;
+
+/** وقت الإشعار النهاري — بعد الظهر (docs/engine.md §6). */
+const AFTERNOON_NUDGE_TIME = "14:00";
 
 /**
  * شريط التنقل السفلي — يظهر من الشاشة 03 فصاعداً.
@@ -17,6 +23,7 @@ const SOON_NOTICE_MS = 2800;
 export function TabBar({ active = "today" }: { active?: TabId }) {
   const lang = useLang();
   const t = TABBAR[lang];
+  const nights = useNights((state) => state.nights);
   const [soon, setSoon] = useState(false);
   const timer = useRef<number | null>(null);
 
@@ -25,6 +32,22 @@ export function TabBar({ active = "today" }: { active?: TabId }) {
       if (timer.current !== null) window.clearTimeout(timer.current);
     };
   }, []);
+
+  // الإشعار النهاري: لطيف واحد بعد الظهر إن لم يُسجَّل الصباح — لا مطاردة،
+  // ولا إشعار ليلي (الحارس في showReminder يمنع أي إرسال بعد 19:00).
+  useEffect(() => {
+    const cancel = scheduleAfternoonNudge({
+      time: AFTERNOON_NUDGE_TIME,
+      title: NOTIFY[lang].nudgeTitle,
+      body: NOTIFY[lang].nudgeBody,
+      shouldSend: () => {
+        const today = localIsoDate();
+        return !nights.some((night) => night.date === today);
+      },
+    });
+
+    return cancel;
+  }, [lang, nights]);
 
   const showSoon = () => {
     setSoon(true);
@@ -38,7 +61,7 @@ export function TabBar({ active = "today" }: { active?: TabId }) {
     { id: "ask" as const, label: t.ask, icon: MessageCircle, href: "/ask" },
     // «المكتبة» تفتح مكتبة النوم (الشاشة 09).
     { id: "library" as const, label: t.library, icon: BookOpen, href: "/library" },
-    { id: "progress" as const, label: t.progress, icon: TrendingUp },
+    { id: "progress" as const, label: t.progress, icon: TrendingUp, href: "/progress" },
   ];
 
   return (

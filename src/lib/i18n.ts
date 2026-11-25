@@ -1266,3 +1266,205 @@ export const NIGHT_TASKS: Record<Lang, Record<string, string>> = {
     added: "The task is in tonight's plan.",
   },
 };
+
+// ---------------------- الشاشة 08 — لحظات التقدم ----------------------
+// كل النصوص من docs/screens.md § الشاشة 08. الأرقام تُملأ من محرك التقدم
+// (src/lib/engine/progress.ts) عبر fillText — لا رقم مكتوب في المكوّن.
+const progressAr = {
+  docTitle: "تقدمي",
+  headerTitle: "لحظات التقدم",
+  headerSubline: "ليان · {age}",
+  eyebrow: "تقدم حقيقي، لا رسوم بيانات",
+
+  summaryEyebrow: "الخلاصة",
+  storyImprovingPrev:
+    "{n} ليالٍ متتالية من التحسن — {name} تنام الآن بمعدل {recent} ساعات متصلة، كان {prev} قبل أسبوعين. هذا تقدم حقيقي بالمعايير التي تهمكما، لا برسوم البيانات.",
+  storyImprovingStart:
+    "{n} ليالٍ متتالية من التحسن — {name} تنام الآن بمعدل {recent} ساعات متصلة، كان {prev} في البداية. هذا تقدم حقيقي بالمعايير التي تهمكما، لا برسوم البيانات.",
+  storySteady:
+    "ليالٍ مستقرة — {name} تنام بمعدل {recent} ساعات متصلة. لا قفزة ولا تراجع؛ الثبات نفسه إنجاز يخدم خطة الغد.",
+  storyRegression:
+    "نبرة تهدئة: {name} تمرّ بليالٍ أصعب هذه الأيام، وهذا طبيعي ومؤقت. ثبّتنا الخطة كما هي، وجهّزنا لكِ دليلاً عملياً بثلاثة أيام. لا أيام فاشلة هنا — فقط بيانات تخدم خطة الغد.",
+  storyFirst:
+    "بداية هادئة — سجّلي ليلتين أخريين من تبويب اليوم، ويبدأ التقدم بالظهور هنا تدريجياً.",
+
+  weekTitle: "ليالي الأسبوع",
+  weekSubtitle: "أطول فترة نوم متصل",
+  weekHint: "تقدير معلن لا قياس دقيق — مبني على وقت النوم وعدد الاستيقاظات.",
+  barAria: "{day}: {hours} ساعة",
+  barEmptyAria: "{day}: لا تسجيل",
+  legendGood: "ليلة جيدة",
+  legendNormal: "ليلة عادية",
+
+  nextTitle: "الإنجاز القادم",
+  nextHint: "بهذا الاتجاه تقترب خلال أيام",
+  nextProgress: "{current} من {target}",
+  nextAllDone: "كل الإنجازات مفتوحة — هذه بداية طريق طويل، لا نهايته.",
+
+  badgesTitle: "شارات الإنجازات",
+  badgeFirstFullNight: "أول ليلة كاملة",
+  badgeFirstWeek: "أول أسبوع التزام",
+  badgeSteadyWeek: "أسبوع متصل",
+  badgeFirstImprovement: "بداية التحسن",
+  badgeLocked: "مقفلة",
+  badgeUnlocked: "مفتوحة",
+  badgeAria: "{badge} — {state}",
+
+  regressionLink: "دليل النجاة — افتحيه الآن",
+  regressionHint: "دليل عملي بثلاثة أيام، مبني على عمر ليان.",
+
+  disclaimer: "لا أيام فاشلة هنا — فقط بيانات تخدم خطة الغد",
+
+  emptyTitle: "لا ليالٍ مسجّلة بعد",
+  emptyBody: "سجّلي الليلة من تبويب اليوم، ويبدأ التقدم بالظهور هنا.",
+
+  celebrateTitle: "أول ليلة كاملة!",
+  celebrateBody:
+    "{name} نامت ليلة كاملة بلا استيقاظ. هذه لحظة تستحق الاحتفال — صورة تُشارك بلا أي بيانات خاصة.",
+  celebrateShare: "شاركي الصورة",
+  celebrateClose: "إغلاق",
+  celebrateWorking: "جاري تجهيز الصورة...",
+  celebrateDone: "تم تجهيز الصورة — بلا أي معلومات خاصة.",
+  celebrateError: "تعذّر إنشاء الصورة. جرّبي مرة أخرى.",
+  celebrateCardEyebrow: "من راحة",
+  celebrateCardTitle: "أول ليلة كاملة",
+  celebrateCardBody: "ليلة كاملة بلا استيقاظ — إنجاز يُقاس بالالتزام لا بالكمال.",
+  celebrateCardTagline: "ثلاث لمسات صباحاً. صمت ليلي كامل. خطة تتذكر.",
+  celebrateCardFooter: "راحة · RahaMoon — مدرّب نوم الرضّع",
+  celebratePreviewTitle: "معاينة الصورة",
+  celebratePreviewHint: "هذه هي الصورة التي ستُشارك — بلا بيانات خاصة.",
+  celebrateSave: "حفظ الصورة",
+  celebrateNote: "صورة نظيفة — بلا اسم أو عمر أو نمط استيقاظ.",
+
+  devTitle: "أدوات التطوير — لا تظهر للمستخدم",
+  devImproving: "7 ليالٍ تتحسن",
+  devFullNight: "7 ليالٍ + ليلة كاملة",
+  devRegression: "7 ليالٍ انحدار",
+  devReset: "مسح الليالي",
+  devSeeded: "تم — سبع ليالٍ محفوظة",
+} as const;
+
+type ProgressKeys = keyof typeof progressAr;
+
+export const PROGRESS: Record<Lang, Record<ProgressKeys, string>> = {
+  ar: progressAr,
+  en: {
+    docTitle: "Progress",
+    headerTitle: "Progress moments",
+    headerSubline: "Layan · {age}",
+    eyebrow: "Real progress, not data charts",
+
+    summaryEyebrow: "The summary",
+    storyImprovingPrev:
+      "{n} nights in a row of improvement — {name} now sleeps about {recent} hours at a stretch, when it was {prev} two weeks ago. This is real progress by the measures that matter to you both, not data charts.",
+    storyImprovingStart:
+      "{n} nights in a row of improvement — {name} now sleeps about {recent} hours at a stretch, when it was {prev} at the start. This is real progress by the measures that matter to you both, not data charts.",
+    storySteady:
+      "Steady nights — {name} sleeps about {recent} hours at a stretch. No leap and no slide; the steadiness itself is an achievement that serves tomorrow's plan.",
+    storyRegression:
+      "A calming note: {name} is going through harder nights these days, and this is normal and temporary. We've held the plan as it is and prepared a practical three-day guide for you. No failed days here — only data serving tomorrow's plan.",
+    storyFirst:
+      "A quiet start — log two more nights from the Today tab, and progress begins to show here gradually.",
+
+    weekTitle: "This week's nights",
+    weekSubtitle: "Longest continuous sleep",
+    weekHint:
+      "A declared estimate, not an exact measurement — based on sleep time and number of wake-ups.",
+    barAria: "{day}: {hours} hours",
+    barEmptyAria: "{day}: no log",
+    legendGood: "Good night",
+    legendNormal: "Normal night",
+
+    nextTitle: "Next achievement",
+    nextHint: "At this rate, you're close — within days",
+    nextProgress: "{current} of {target}",
+    nextAllDone:
+      "Every achievement is open — this is the start of a long road, not its end.",
+
+    badgesTitle: "Achievement badges",
+    badgeFirstFullNight: "First full night",
+    badgeFirstWeek: "First week of commitment",
+    badgeSteadyWeek: "A steady week",
+    badgeFirstImprovement: "First improvement",
+    badgeLocked: "Locked",
+    badgeUnlocked: "Unlocked",
+    badgeAria: "{badge} — {state}",
+
+    regressionLink: "Survival guide — open it now",
+    regressionHint: "A practical three-day guide, built around Layan's age.",
+
+    disclaimer: "No failed days here — only data serving tomorrow's plan",
+
+    emptyTitle: "No nights logged yet",
+    emptyBody:
+      "Log last night from the Today tab, and progress starts showing here.",
+
+    celebrateTitle: "First full night!",
+    celebrateBody:
+      "{name} slept a whole night without waking. This is a moment worth celebrating — an image to share with no private details.",
+    celebrateShare: "Share the image",
+    celebrateClose: "Close",
+    celebrateWorking: "Preparing the image...",
+    celebrateDone: "Image ready — with no private details.",
+    celebrateError: "Couldn't create the image. Please try again.",
+    celebrateCardEyebrow: "From RahaMoon",
+    celebrateCardTitle: "First full night",
+    celebrateCardBody:
+      "A whole night without waking — an achievement measured by commitment, not perfection.",
+    celebrateCardTagline:
+      "Three morning taps. Full night silence. A plan that remembers.",
+    celebrateCardFooter: "RahaMoon — Baby Sleep Coach",
+    celebratePreviewTitle: "Image preview",
+    celebratePreviewHint:
+      "This is the image you'll share — no private details.",
+    celebrateSave: "Save image",
+    celebrateNote: "A clean image — no name, age, or wake pattern.",
+
+    devTitle: "Development tools — never shown to users",
+    devImproving: "7 improving nights",
+    devFullNight: "7 nights + a full night",
+    devRegression: "7 regression nights",
+    devReset: "Clear the nights",
+    devSeeded: "Done — seven nights saved",
+  },
+};
+
+// أسماء أيام الأسبوع القصيرة — Sunday أولاً (0) … Saturday (6).
+export const WEEKDAYS: Record<Lang, string[]> = {
+  ar: [
+    "الأحد",
+    "الاثنين",
+    "الثلاثاء",
+    "الأربعاء",
+    "الخميس",
+    "الجمعة",
+    "السبت",
+  ],
+  en: [
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
+  ],
+};
+
+// ---------------------- الإشعار النهاري (بعد الظهر) ----------------------
+// docs/engine.md §6: «إن لم يُسجَّل الصباح: إشعار لطيف واحد بعد الظهر —
+// لا مطاردة ولا عدّاد انقطاع». ولا إشعار ليلياً إطلاقاً.
+const notifyAr = {
+  nudgeTitle: "ليلة ليان؟",
+  nudgeBody: "ثلاث لمسات وسنعدّل خطة الغد",
+} as const;
+
+type NotifyKeys = keyof typeof notifyAr;
+
+export const NOTIFY: Record<Lang, Record<NotifyKeys, string>> = {
+  ar: notifyAr,
+  en: {
+    nudgeTitle: "Layan's night?",
+    nudgeBody: "Three taps and we'll adjust tomorrow's plan",
+  },
+};
