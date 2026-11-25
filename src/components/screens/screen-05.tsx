@@ -7,6 +7,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { Minus, Pencil, Plus } from "lucide-react";
 import { TabBar } from "@/components/nav/tabbar";
 import { Button } from "@/components/ui/button";
@@ -472,6 +473,7 @@ function NightSummary({
 export function Screen05() {
   const lang = useLang();
   const t = NIGHTS[lang];
+  const router = useRouter();
   const profile = useProfile();
   const storedPlan = usePlan((state) => state.plan);
   const nights = useNights((state) => state.nights);
@@ -606,10 +608,14 @@ export function Screen05() {
                 });
                 setJustSaved(true);
                 setMode("view");
+                // الحلقة تُغلق: التسجيل يفتح خطة اليوم المعدّلة مباشرة (06).
+                router.push("/plan/today");
               }}
               onEmergency={(draft) => {
                 saveNight({ date: todayIso, ...draft, emergency: true });
                 setMode("edit");
+                // الطوارئ تُكمل في 06 بالقالب الهادئ بلا تعديلات.
+                router.push("/plan/today");
               }}
             />
           ) : (

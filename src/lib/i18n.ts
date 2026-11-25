@@ -1,6 +1,10 @@
 // كل نصوص الواجهة تمر من هنا — عربي أولاً ومقابل إنجليزي معتمد.
 // راجع docs/i18n.md قبل إضافة أي مفتاح جديد.
 
+import type {
+  Adjustment,
+  AdjustmentReasonCode,
+} from "@/lib/engine/adjuster";
 import type { PlanReason, PlanReasonCode } from "@/lib/engine/first-plan";
 
 export type Lang = "ar" | "en";
@@ -304,12 +308,12 @@ const nightsAr = {
 
   saveCta: "سجّلي — وحدّثي خطة اليوم",
   emergencyCta: "ليلة صعبة جداً — فعّلي وضع الطوارئ",
-  emergencyOn: "وضع الطوارئ مفعّل — يكتمل غداً مع الشاشة 06",
+  emergencyOn: "وضع الطوارئ مفعّل — خطة اليوم مثبتة بلا أي تعديل",
   emergencyTone:
-    "كفى اليوم. ثبّتنا كل التوقيتات كما هي بلا أي تعديل، وخفضنا التوقعات. يكتمل البروتوكول غداً مع الشاشة 06.",
+    "كفى اليوم. ثبّتنا كل التوقيتات كما هي بلا أي تعديل، وخفضنا التوقعات. خطة اليوم تفتح في الشاشة التالية.",
   emergencyBannerTitle: "وضع الطوارئ مفعّل",
   emergencyBannerBody:
-    "ثبّتنا خطة اليوم كما هي، بلا تعديلات ولا مطاردة. الخطوة التالية تصل غداً مع الشاشة 06.",
+    "ثبّتنا خطة اليوم كما هي، بلا تعديلات ولا مطاردة. التفصيل الهادئ في خطة اليوم.",
   notice: "كل هذا لا يستهلك ثلاثين ثانية — ثم يصمت التطبيق حتى الغد",
 
   savedNotice: "تم — خطتك تحدثت. نراك غداً في الصباح.",
@@ -355,12 +359,12 @@ export const NIGHTS: Record<Lang, Record<NightsKeys, string>> = {
 
     saveCta: "Log it — update today's plan",
     emergencyCta: "A very rough night — turn on emergency mode",
-    emergencyOn: "Emergency mode is on — it completes tomorrow with screen 06",
+    emergencyOn: "Emergency mode is on — today's plan is fixed with no adjustments",
     emergencyTone:
-      "Enough for today. Every timing stays fixed with no adjustment, and expectations are lowered. The protocol completes tomorrow with screen 06.",
+      "Enough for today. Every timing stays fixed with no adjustment, and expectations are lowered. Today's plan opens on the next screen.",
     emergencyBannerTitle: "Emergency mode is on",
     emergencyBannerBody:
-      "Today's plan is fixed exactly as it is, with no adjustments and no chasing. The next step arrives tomorrow with screen 06.",
+      "Today's plan is fixed exactly as it is, with no adjustments and no chasing. The calm detail sits in today's plan.",
     notice:
       "All of this takes under thirty seconds — then the app goes quiet until tomorrow",
 
@@ -666,4 +670,211 @@ export function formatAgeMonths(lang: Lang, months: number): string {
     "{n} أشهر",
     "{n} شهراً",
   );
+}
+
+// ---------------------- الشاشة 06 — خطة اليوم المعدّلة ----------------------
+// النصوص من docs/screens.md § الشاشة 06. لا نص صلب في المكوّن.
+
+const adjustmentsAr = {
+  docTitle: "خطة اليوم المعدّلة",
+  headerTitle: "خطة ليان — خطة اليوم",
+  headerSubline: "ليان · {age}",
+  updatedEyebrow: "تحدّثت الآن",
+
+  adjustEyebrow: "تعديل اليوم",
+  elementBedtime: "موعد النوم",
+  elementNap: "القيلولة",
+  elementFeed: "آخر رضعة",
+  elementRoutine: "بداية الروتين",
+  changeAria: "من {from} إلى {to}",
+  reasonLabel: "لماذا",
+  rejectCta: "غير موافق",
+  rejectAria: "غير موافق على تعديل {element} من {from} إلى {to}",
+  rejectedNotice:
+    "تم — أعدنا {element} إلى {time}. لن نقترح التعديل نفسه قبل ثلاثة أيام.",
+  revertNote: "الرفض بيانات: الخطة تتعلم من اعتراضك وتسجّله.",
+
+  pillarsTitle: "وبقيت الركائز كما هي",
+  pillarsBody:
+    "تغيير واحد في اليوم فقط. الروتين وفصل التغذية عن النوم والاستجابة الهادئة كما اعتمدتِها أمس.",
+  pillarRoutine: "روتين ثابت من 4 خطوات",
+  pillarFeed: "فصل التغذية عن النوم",
+  pillarResponse: "استجابة هادئة عند الاستيقاظ",
+
+  earlyWarningTitle: "إنذار مبكر",
+  earlyWarningBody:
+    "مرصود: نمط قيلولة متقلب منذ يومين — قد يكون انحداراً صغيراً قادماً؛ جعلنا خطة اليوم أكثر تحفظاً وجهّزنا دليلاً من 4 دقائق إن تأكد الشك غداً.",
+  earlyWarningHint: "المكتبة ودليل النجاة يصلان في يومهما — حتى حينها نبقى على الخطة.",
+
+  holdTitle: "لا تعديل اليوم — تثبيت",
+  holdBody:
+    "ثلاث ليالٍ متدهورة على التوالي: القاعدة عند الانحدار تثبيت كامل وإنزال التوقعات. لا نجدّد جرعات التغيير أثناء الأزمة.",
+  holdTone: "لا نطارد تحسناً في ليلة صعبة. خطة الأمس كما هي، والأمان أولاً.",
+
+  cautiousTitle: "نمط متقلب — خطة اليوم أكثر تحفظاً",
+  cautiousBody:
+    "ليلتان تقلب فيهما النمط صعوداً وهبوطاً: لا نعدّل على إشارة غير مستقرة. الخطة كما هي، وجهّزنا الإنذار المبكر أعلاه.",
+
+  rejectedHoldTitle: "لا تعديل اليوم — احتراماً لاعتراضك",
+  rejectedHoldBody:
+    "رفضت هذا التعديل منذ أقل من ثلاثة أيام، ولن نقترحه قبل أن تمرّ ثلاثة أيام كاملة. خطة الأمس كما هي، ونعود للسؤال بعدها.",
+
+  floorTitle: "وصلنا إلى أبكر موعد آمن لعمر ليان",
+  floorBody:
+    "الخطة الآن عند أول نافذة العمر: لا تقديم إضافي اليوم. نثبّت الموعد حتى يستقر النمط، ثم نعيد النظر.",
+
+  steadyTitle: "ليالٍ مستقرة — لا تغيير",
+  steadyBody: "لا نمط واضح يستدعي تعديلاً. نُبقي الخطة كما هي ونسجّل غداً.",
+
+  insufficientTitle: "نحتاج ثلاث ليالٍ قبل أي قرار",
+  insufficientBody:
+    "لا قرار من ليلة واحدة. سجّلي ليلتين أخريين، ونقترح أول تعديل حين يتضح النمط.",
+
+  emergencyTitle: "وضع الطوارئ — تثبيت",
+  emergencyBody: "ثبّتنا توقيتات اليوم كما هي — الأمان أولاً",
+  emergencyNote:
+    "لا تعديلات اليوم، ولا مطاردة. أنزلنا التوقعات إلى معايير أسبوع سابق، وكل التوقيتات كما اعتمدتِها.",
+  survivalLink: "دليل النجاة — يكتمل قريباً",
+  survivalHint: "يفتح من الشاشة 09 بعد يومين.",
+
+  ackCta: "شاهدت خطة اليوم — على الروتين مساءً",
+  ackNotice: "تم — نراك على الروتين مساءً. بعدها يصمت التطبيق حتى الصباح.",
+
+  historyToggle: "سجل التعديلات السابقة",
+  historyTitle: "سجل التعديلات",
+  historyEmpty: "لا تعديلات محفوظة بعد — أولها يظهر مع أول نمط ثلاث ليالٍ.",
+  historyToday: "اليوم",
+  historyOlder: "الأقدم",
+  historyNewer: "الأحدث",
+  historyPage: "صفحة {page} من {total}",
+  historyClose: "إغلاق السجل",
+  statusApplied: "مطبّق",
+  statusRejected: "مرفوض",
+  statusPending: "بانتظار ردك",
+
+  devTitle: "أدوات التطوير — لا تظهر للمستخدم",
+  devImproving: "3 ليالٍ تتحسن",
+  devDeteriorating: "3 ليالٍ تتدهور",
+  devVolatile: "3 ليالٍ متقلبة",
+  devReset: "مسح الليالي والسجل",
+  devSeeded: "تم — أُعيد ضبط الليالي والسجل",
+  devDayForward: "يوم الاختبار +{days}",
+  devDayReset: "العودة إلى اليوم",
+} as const;
+
+type AdjustmentsKeys = keyof typeof adjustmentsAr;
+
+export const ADJUSTMENTS: Record<Lang, Record<AdjustmentsKeys, string>> = {
+  ar: adjustmentsAr,
+  en: {
+    docTitle: "Today's adjusted plan",
+    headerTitle: "Layan's plan — today",
+    headerSubline: "Layan · {age}",
+    updatedEyebrow: "Updated just now",
+
+    adjustEyebrow: "Today's adjustment",
+    elementBedtime: "Bedtime",
+    elementNap: "Nap",
+    elementFeed: "Last feed",
+    elementRoutine: "Routine start",
+    changeAria: "From {from} to {to}",
+    reasonLabel: "Why",
+    rejectCta: "I don't agree",
+    rejectAria: "Disagree with the {element} change from {from} to {to}",
+    rejectedNotice:
+      "Done — {element} is back at {time}. We won't suggest the same change for three days.",
+    revertNote: "A rejection is data: the plan learns from your objection and records it.",
+
+    pillarsTitle: "The foundations stay as they were",
+    pillarsBody:
+      "One change a day, only. The routine, feeding separated from sleep, and the calm response stay exactly as you set them yesterday.",
+    pillarRoutine: "A steady 4-step routine",
+    pillarFeed: "Feeding kept apart from sleep",
+    pillarResponse: "A calm response to wake-ups",
+
+    earlyWarningTitle: "Early warning",
+    earlyWarningBody:
+      "Spotted: a swinging nap pattern for two days — a small regression may be coming; we kept today's plan more conservative and prepared a 4-minute guide in case the doubt is confirmed tomorrow.",
+    earlyWarningHint: "The library and the survival guide arrive on their day — until then we stay on plan.",
+
+    holdTitle: "No adjustment today — holding",
+    holdBody:
+      "Three deteriorating nights in a row: the rule at a regression is a full hold and lowered expectations. We don't add new change during a crisis.",
+    holdTone: "We don't chase progress on a hard night. Yesterday's plan stays as it is — safety first.",
+
+    cautiousTitle: "A swinging pattern — today's plan stays conservative",
+    cautiousBody:
+      "Two nights with the pattern swinging up and down: we don't move on an unstable signal. The plan stays as it is, and the early warning above is ready.",
+
+    rejectedHoldTitle: "No adjustment today — honoring your objection",
+    rejectedHoldBody:
+      "You rejected this change less than three days ago, so we won't suggest it again until three full days pass. Yesterday's plan stays as it is, and we ask again after that.",
+
+    floorTitle: "We've reached the earliest safe bedtime for Layan's age",
+    floorBody:
+      "The plan now sits at the first edge of the age window: no further move today. We hold the time until the pattern settles, then look again.",
+
+    steadyTitle: "Steady nights — no change",
+    steadyBody: "No pattern clear enough to act on. We keep the plan as it is and log again tomorrow.",
+
+    insufficientTitle: "Three nights before any decision",
+    insufficientBody:
+      "No decision from one night. Log two more nights, and the first adjustment comes when the pattern is clear.",
+
+    emergencyTitle: "Emergency mode — holding",
+    emergencyBody: "Today's timings are fixed exactly as they are — safety first",
+    emergencyNote:
+      "No adjustments today, and no chasing. Expectations are lowered to a previous week's standard, and every timing stays as you set it.",
+    survivalLink: "Survival guide — coming soon",
+    survivalHint: "It opens from screen 09 in two days.",
+
+    ackCta: "I've seen today's plan — on the routine tonight",
+    ackNotice: "Done — see you at the routine tonight. After that the app stays quiet until morning.",
+
+    historyToggle: "Earlier adjustments",
+    historyTitle: "Adjustment history",
+    historyEmpty: "No adjustments saved yet — the first appears with the first three-night pattern.",
+    historyToday: "Today",
+    historyOlder: "Older",
+    historyNewer: "Newer",
+    historyPage: "Page {page} of {total}",
+    historyClose: "Close history",
+    statusApplied: "Applied",
+    statusRejected: "Rejected",
+    statusPending: "Awaiting you",
+
+    devTitle: "Development tools — never shown to users",
+    devImproving: "3 improving nights",
+    devDeteriorating: "3 deteriorating nights",
+    devVolatile: "3 swinging nights",
+    devReset: "Clear nights and history",
+    devSeeded: "Done — nights and history reset",
+    devDayForward: "Test day +{days}",
+    devDayReset: "Back to today",
+  },
+};
+
+// قوالب أسباب التعديل: [ماذا تغيّر] — [الملاحظة] — [المرجو].
+// القيم من reasonParams، فلا نص صلب في المحرك ولا في المكوّن.
+const adjustmentReasonsAr: Record<AdjustmentReasonCode, string> = {
+  "bedtime-earlier":
+    "قدّمناه {minutes} دقائق — {nights} ليالٍ متتالية نامت فيها أبكر، واستيقاظها نزل من {wakesFrom} إلى {wakesTo} — نثبّت التقدّم بخطوة صغيرة ونرى النتيجة غداً.",
+};
+
+const adjustmentReasonsEn: Record<AdjustmentReasonCode, string> = {
+  "bedtime-earlier":
+    "We moved it {minutes} minutes earlier — {nights} nights in a row of earlier sleep, with wake-ups down from {wakesFrom} to {wakesTo} — one small step to hold the progress, and we'll see tomorrow.",
+};
+
+/** يصوغ سبب تعديل بلغة الواجهة — الجملة الواحدة التي تراها الأم. */
+export function formatAdjustmentReason(
+  lang: Lang,
+  adjustment: Adjustment,
+): string {
+  const templates = lang === "ar" ? adjustmentReasonsAr : adjustmentReasonsEn;
+  return fillText(templates[adjustment.reason], {
+    ...adjustment.reasonParams,
+    from: adjustment.from,
+    to: adjustment.to,
+  });
 }
