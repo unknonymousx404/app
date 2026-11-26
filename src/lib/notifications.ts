@@ -22,10 +22,24 @@ const LAST_SENT_KEY = "raha.reminder.lastSent";
 const LAST_NUDGE_KEY = "raha.nudge.lastSent";
 
 /**
- * حدّ الصمت الليلي — لا إشعار بعد هذه الساعة إطلاقاً (docs/engine.md §6).
- * الحارس هنا في نقطة الإرسال الوحيدة، فلا يمكن لأي مسار جدولة أن يتجاوزه.
+ * نافذة الصمت الليلي (docs/engine.md §6: «لا إشعار ليلياً إطلاقاً»):
+ * تبدأ من مساءً وتنتهي مع الصباح.
+ *
+ * هذه النافذة تخصّ **الإشعار النهاري** فقط. أما تذكير المساء فهو مطلوب
+ * صراحةً في المواصفة («إشعار مسائي واحد قبل الروتين بعشر دقائق، في وقت
+ * يحدده المستخدم») — وقد يقع وقتُه داخل هذه النافذة، فيجب أن يعمل.
+ * لذلك لا حارس في `showReminder`، بل في مسار التنبيه النهاري وحده.
  */
 export const NIGHT_SILENCE_HOUR = 19;
+
+/** نهاية الصمت — الصباح. */
+export const NIGHT_SILENCE_END_HOUR = 6;
+
+/** هل نحن داخل نافذة الصمت الليلي؟ */
+export function isNightHour(date: Date = new Date()): boolean {
+  const hour = date.getHours();
+  return hour >= NIGHT_SILENCE_HOUR || hour < NIGHT_SILENCE_END_HOUR;
+}
 
 /** أقصى مهلة.setTimeout (‏~24.8 يوماً) — نُعيد التسليح قبلها. */
 const MAX_TIMEOUT = 2_147_483_000;
@@ -89,9 +103,6 @@ export function reminderSentToday(): boolean {
 /** يعرض الإشعار الآن. */
 export function showReminder(title: string, body: string): void {
   if (reminderPermission() !== "granted") return;
-
-  // الصمت الليلي مقدّس: لا إشعار عند أو بعد 19:00 — أياً كان سبب الجدولة.
-  if (new Date().getHours() >= NIGHT_SILENCE_HOUR) return;
 
   try {
     new Notification(title, {
@@ -179,8 +190,9 @@ export function scheduleEveningReminder(
 
 // ------------------------- الإشعار النهاري (بعد الظهر) -------------------------
 // docs/engine.md §6: «إن لم يُسجَّل الصباح: إشعار لطيف واحد بعد الظهر — لا
-// مطاردة ولا عدّاد انقطاع». الحارس الليلي في showReminder يمنع أي إرسال بعد
-// 19:00، وهذا المسار مقصور على فترة ما بعد الظهر أصلاً.
+// مطاردة ولا عدّاد انقطاع». الحارس الليلي هنا في هذا المسار وحده: إن استيقظ
+// الجهاز من سبات متأخر، وقع المؤقت في نافذة الصمت فلا يُرسل الإشعار ولا
+// يُحسب كمرسل — وتذكير المساء (المطلوب قبل الروتين) لا يشمله هذا الحارس.
 
 function lastNudgeDate(): string | null {
   try {
@@ -259,7 +271,8 @@ export function scheduleAfternoonNudge(
     }
 
     timer = window.setTimeout(() => {
-      if (!nudgeSentToday() && options.shouldSend()) {
+      // حارس الصمت الليلي: التنبيه النهاري لا يُرسل داخل نافذة الصمت.
+      if (!nudgeSentToday() && !isNightHour() && options.shouldSend()) {
         showReminder(options.title, options.body);
         markNudgeSentToday();
       }

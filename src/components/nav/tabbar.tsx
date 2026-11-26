@@ -34,7 +34,8 @@ export function TabBar({ active = "today" }: { active?: TabId }) {
   }, []);
 
   // الإشعار النهاري: لطيف واحد بعد الظهر إن لم يُسجَّل الصباح — لا مطاردة،
-  // ولا إشعار ليلي (الحارس في showReminder يمنع أي إرسال بعد 19:00).
+  // ولا إشعار ليلي (حارس الصمت داخل مسار التنبيه النهاري نفسه، فلا يمسّ
+  // تذكير المساء الذي يجب أن يمرّ قبل الروتين).
   useEffect(() => {
     const cancel = scheduleAfternoonNudge({
       time: AFTERNOON_NUDGE_TIME,
