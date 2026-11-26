@@ -66,7 +66,7 @@ const profileAr = {
   step3Hint: "اختاري النمط الأقرب لآخر أسبوع.",
   wakeTwoThree: "مرتين إلى ثلاث، في مواعيد متقاربة",
   wakeFrequentRandom: "كثيراً وبلا انتظام",
-  wakeEarlyRiser: "ينام أول الليل ثم يستيقظ في الفجر",
+  wakeEarlyRiser: "ينام أول الليل ثم يستيقظ قبل الشروق",
 
   step4Title: "وما أهم هدف تريدينه أولاً؟",
   step4Hint: "هدف واحد نبدأ به، والباقي يأتي بعده.",
@@ -158,7 +158,7 @@ const planAr = {
   timelineBed: "وضع في السرير يقظاً",
   timelineSleep: "النوم المتوقع",
 
-  detailRoutine: "بعد صلاة العشاء بربع ساعة",
+  detailRoutine: "بعد الغروب بربع ساعة",
   detailFeed: "بلا نوم بعدها — فصل التغذية عن النوم بـ20 دقيقة",
   detailBed: "ضعيها في السرير يقظاً — الهدف: تهدأ بنفسها خلال 15 دقيقة",
   detailSleep: "تقدير أولي — يتحدّث يومياً",
@@ -221,7 +221,7 @@ export const PLAN: Record<Lang, Record<PlanKeys, string>> = {
     timelineBed: "Into bed, awake",
     timelineSleep: "Expected sleep",
 
-    detailRoutine: "Fifteen minutes after Isha",
+    detailRoutine: "Fifteen minutes after sunset",
     detailFeed: "No sleep after it — feeding separated from sleep by 20 minutes",
     detailBed: "Place them in bed awake — goal: self-settle within 15 minutes",
     detailSleep: "An initial estimate — updates daily",
@@ -524,7 +524,7 @@ export const WAITLIST: Record<Lang, Record<WaitlistKeys, string>> = {
 
 const planReasonsAr: Record<PlanReasonCode, string> = {
   routine:
-    "نبدأ {time} — بعد صلاة العشاء بربع ساعة، ثم {routineMinutes} دقيقة روتين هادئ. آخر نافذة يقظة لعمر {ageMonths} أشهر هي {wakeMin}–{wakeMax} ساعة، وموعد النوم {bedtime} يقع داخل نطاقها.",
+    "نبدأ {time} — بعد الغروب بربع ساعة، ثم {routineMinutes} دقيقة روتين هادئ. آخر نافذة يقظة لعمر {ageMonths} أشهر هي {wakeMin}–{wakeMax} ساعة، وموعد النوم {bedtime} يقع داخل نطاقها.",
   feed:
     "آخر رضعة {time} — قبل السرير بـ{gap} دقيقة. نفصل التغذية عن النوم حتى لا ترتبط الرضاعة بالنوم، وتبقى لديها فرصة أن تهدأ بنفسها.",
   bed:
@@ -545,7 +545,7 @@ const planReasonsAr: Record<PlanReasonCode, string> = {
 
 const planReasonsEn: Record<PlanReasonCode, string> = {
   routine:
-    "We start at {time} — fifteen minutes after Isha, then {routineMinutes} minutes of calm routine. The last wake window at {ageMonths} months is {wakeMin}–{wakeMax} hours, and the {bedtime} bedtime sits inside it.",
+    "We start at {time} — fifteen minutes after sunset, then {routineMinutes} minutes of calm routine. The last wake window at {ageMonths} months is {wakeMin}–{wakeMax} hours, and the {bedtime} bedtime sits inside it.",
   feed:
     "Last feed at {time} — {gap} minutes before bed. We keep feeding separate from sleep so feeding doesn't become the sleep cue, and self-settling stays possible.",
   bed:
@@ -614,7 +614,10 @@ export function fillText(
 /** يصوغ سبب عنصر خطة بلغة الواجهة، ويضيف ملاحظة المشكلة/الهدف عند الحاجة. */
 export function formatPlanReason(lang: Lang, reason: PlanReason): string {
   const templates = lang === "ar" ? planReasonsAr : planReasonsEn;
-  let text = fillText(templates[reason.code], reason.params);
+  let text = fillText(
+    templates[reason.code],
+    withTwelveHourTimes(lang, reason.params),
+  );
 
   if (reason.code === "bed") {
     const notes = lang === "ar" ? planProblemNotesAr : planProblemNotesEn;
@@ -684,6 +687,64 @@ export function formatAgeMonths(lang: Lang, months: number): string {
     "{n} أشهر",
     "{n} شهراً",
   );
+}
+
+// ---------------------------- الوقت بنظام 12 ساعة ----------------------------
+// كل توقيت يظهر للمستخدم يمر من `formatTime` — لا صيغة 24 ساعة في الواجهة.
+// القيم الداخلية في المخازن والمحرك تبقى HH:mm بنظام 24.
+
+const timeAr = {
+  am: "صباحاً",
+  pm: "مساءً",
+  hourAria: "الساعة",
+  minuteAria: "الدقيقة",
+  periodAria: "الفترة: صباحاً أو مساءً",
+} as const;
+
+type TimeKeys = keyof typeof timeAr;
+
+export const TIME: Record<Lang, Record<TimeKeys, string>> = {
+  ar: timeAr,
+  en: {
+    am: "AM",
+    pm: "PM",
+    hourAria: "Hour",
+    minuteAria: "Minute",
+    periodAria: "Period: AM or PM",
+  },
+};
+
+/** يصوغ HH:mm بصيغة 12 ساعة بلغة الواجهة: «8:45 مساءً» / "8:45 PM". */
+export function formatTime(lang: Lang, value: string): string {
+  const [rawHour, rawMinute] = value.split(":");
+  const hours = Number(rawHour);
+  const minutes = Number(rawMinute);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return value;
+
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  const minuteText = String(minutes).padStart(2, "0");
+  const marker = hours >= 12 ? TIME[lang].pm : TIME[lang].am;
+
+  return `${hour12}:${minuteText} ${marker}`;
+}
+
+/** مفاتيح تحمل توقيتاً في قوالب الأسباب — تُصاغ بنظام 12 ساعة عند العرض. */
+const CLOCK_PARAM_KEYS = ["time", "bedtime", "from", "to"] as const;
+
+function withTwelveHourTimes(
+  lang: Lang,
+  params: Record<string, string | number>,
+): Record<string, string | number> {
+  const next: Record<string, string | number> = { ...params };
+
+  for (const key of CLOCK_PARAM_KEYS) {
+    const value = next[key];
+    if (typeof value === "string" && /^\d{1,2}:\d{2}$/.test(value)) {
+      next[key] = formatTime(lang, value);
+    }
+  }
+
+  return next;
 }
 
 // ---------------------------- الشاشة 07 — اسألي راحة ----------------------------
@@ -937,9 +998,9 @@ export function formatAdjustmentReason(
 ): string {
   const templates = lang === "ar" ? adjustmentReasonsAr : adjustmentReasonsEn;
   return fillText(templates[adjustment.reason], {
-    ...adjustment.reasonParams,
-    from: adjustment.from,
-    to: adjustment.to,
+    ...withTwelveHourTimes(lang, adjustment.reasonParams),
+    from: formatTime(lang, adjustment.from),
+    to: formatTime(lang, adjustment.to),
   });
 }
 

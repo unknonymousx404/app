@@ -32,6 +32,7 @@ import {
   fillText,
   formatAdjustmentReason,
   formatAgeMonths,
+  formatTime,
   type Lang,
 } from "@/lib/i18n";
 import { useLang } from "@/lib/lang";
@@ -93,14 +94,14 @@ function TimePair({
       className="inline-flex items-center gap-2 text-2xl leading-none font-medium tabular-nums"
     >
       <span dir="ltr" className="text-nlo ltr-inline">
-        {from}
+        {formatTime(lang, from)}
       </span>
       <ArrowLeft
         aria-hidden="true"
         className={`h-4 w-4 shrink-0 text-gold ${lang === "en" ? "rotate-180" : ""}`}
       />
       <span dir="ltr" className="text-gold ltr-inline">
-        {to}
+        {formatTime(lang, to)}
       </span>
     </span>
   );
@@ -170,8 +171,8 @@ function AdjustmentCard({
           onClick={() => onReject(record)}
           aria-label={fillText(t.rejectAria, {
             element: label,
-            from: record.from,
-            to: record.to,
+            from: formatTime(lang, record.from),
+            to: formatTime(lang, record.to),
           })}
           className="mt-4 h-11 w-full rounded-full border border-nedge bg-nchip/40 px-4 text-sm font-normal text-nmd hover:bg-nchip hover:text-nhi focus-visible:ring-gold/60"
         >
@@ -581,7 +582,7 @@ export function Screen06() {
             >
               {fillText(t.rejectedNotice, {
                 element: elementLabel(lang, rejectedNotice.element),
-                time: rejectedNotice.time,
+                time: formatTime(lang, rejectedNotice.time),
               })}
             </p>
           ) : null}
@@ -726,7 +727,8 @@ export function Screen06() {
                                     dir="ltr"
                                     className="mt-0.5 block text-xs text-nmd ltr-inline"
                                   >
-                                    {record.from} ← {record.to}
+                                    {formatTime(lang, record.from)} ←{" "}
+                                    {formatTime(lang, record.to)}
                                   </span>
                                 </span>
                                 <span

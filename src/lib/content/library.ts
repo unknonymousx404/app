@@ -520,35 +520,33 @@ export const LESSONS: readonly Lesson[] = [
   // ------------------------ 2 للسياق الاجتماعي ------------------------
 
   {
-    id: "context-prayer",
+    id: "context-dinner",
     category: "context",
     minutes: 3,
     art: "moon",
     title: {
-      ar: "العشاء وصلاة العشاء: بداية الليلة",
-      en: "Dinner and Isha: where the night begins",
+      ar: "العشاء وبداية الليلة",
+      en: "Dinner and where the night begins",
     },
     description: {
-      ar: "صلاة العشاء متأخرة أحياناً، والروتين يجب أن يبدأ بعدها لا قبلها — وهذه ضبطات تجعل العشاء ممكناً.",
-      en: "Isha sometimes runs late, and the routine has to begin after it, not before — these adjustments make family dinners possible.",
+      ar: "العشاء العائلي يتأخر أحياناً، والروتين يجب أن يبدأ بعده لا قبله — وهذه ضبطات تجعل العشاء ممكناً.",
+      en: "Family dinner sometimes runs late, and the routine has to begin after it, not before — these adjustments make family dinners possible.",
     },
     body: {
-      ar: "صلاة العشاء متأخرة أحياناً، والروتين يجب أن يبدأ بعدها لا قبلها. في بيوت كثيرة هذا التناقض — مائدة العشاء ممتدة، والطفل يحتاج أن ينام — هو ما يُنهك الأم قبل أن يبدأ الليل أصلاً.\n\nالقاعدة الأساسية: بداية الروتين تُحسب من العشاء لا من الساعة. فلو انتهى العشاء في الثامنة، يبدأ الروتين في الثامنة والربع، أو بعد صلاة العشاء مباشرة إن تأخرت الصلاة. المعيار واحد: ما بعد العشاء مباشرة.\n\nهذا الترتيب يحلّ نصف المشكلة. النصف الثاني هو إطعام الطفل: امنحيه ما يكفي في وقت العشاء، ثم لا تعطي رضعة أخرى بعده إلا إذا جاع فعلاً — فالرضعة المتأخرة داخل السهرة تؤخّر النوم أكثر من العشاء نفسه.\n\nأمّا حين تأخرت الصلاة كثيراً، فلا تعاقبي نفسك. اختاري ثلاث خطوات فقط الليلة — رضعة، تلاوة، ضوء خافت — واحذفي الحمام. روتين أقصر في ليلة واحدة خيرٌ من روتين كامل متأخر.\n\nوحين تذهبين للصلاة، لا ترجعي إلى الغرفة فوراً — خذي خمس دقائق لكِ وحدكِ. هذا الوقت لكِ، لا له: دقائق الهدوء قبل بداية الليل تحوّل ما بعدها من تضحية إلى عمل منظّم.",
-      en: "Isha sometimes runs late, and the routine has to begin after it, not before. In many homes this is the real tension of the evening: a family dinner that stretches, and a baby who needs to sleep. It is what wears a mother out before the night even starts.\n\nThe basic rule: the routine starts from dinner, not from the clock. If dinner ends at eight, the routine begins at a quarter past eight, or straight after Isha when the prayer runs late. The measure is one thing: what comes after the meal.\n\nThat order solves half the problem. The other half is feeding him: give him enough at dinner, and then no extra feed afterwards unless he is genuinely hungry — a late feed inside the evening delays bedtime more than the dinner itself.\n\nAnd when the prayer runs properly late, do not punish yourself. Choose three steps tonight — feed, recitation, dim light — and drop the bath. A shorter routine on one night is better than a full one that starts late.\n\nAnd when you go to pray, do not come straight back to the room — take five minutes for yourself first. That time is yours, not his: a little quiet before the night begins turns what follows from sacrifice into organised work.",
+      ar: "العشاء العائلي يتأخر أحياناً، والروتين يجب أن يبدأ بعده لا قبله. في بيوت كثيرة هذا التناقض — مائدة العشاء ممتدة، والطفل يحتاج أن ينام — هو ما يُنهك الأم قبل أن يبدأ الليل أصلاً.\n\nالقاعدة الأساسية: بداية الروتين تُحسب من العشاء لا من الساعة. فلو انتهى العشاء في الثامنة، يبدأ الروتين في الثامنة والربع، أو بعد انتهاء المائدة مباشرة إن تأخر العشاء. المعيار واحد: ما بعد العشاء مباشرة.\n\nهذا الترتيب يحلّ نصف المشكلة. النصف الثاني هو إطعام الطفل: امنحيه ما يكفي في وقت العشاء، ثم لا تعطي رضعة أخرى بعده إلا إذا جاع فعلاً — فالرضعة المتأخرة داخل السهرة تؤخّر النوم أكثر من العشاء نفسه.\n\nأمّا حين تأخر العشاء كثيراً، فلا تعاقبي نفسك. اختاري ثلاث خطوات فقط الليلة — رضعة، تلاوة، ضوء خافت — واحذفي الحمام. روتين أقصر في ليلة واحدة خيرٌ من روتين كامل متأخر.\n\nوحين تخرجين من المائدة، لا ترجعي إلى الغرفة فوراً — خذي خمس دقائق لكِ وحدكِ. هذا الوقت لكِ، لا له: دقائق الهدوء قبل بداية الليل تحوّل ما بعدها من تضحية إلى عمل منظّم.",
+      en: "Family dinner sometimes runs late, and the routine has to begin after it, not before. In many homes this is the real tension of the evening: a table that stretches, and a baby who needs to sleep. It is what wears a mother out before the night even starts.\n\nThe basic rule: the routine starts from dinner, not from the clock. If dinner ends at eight, the routine begins at a quarter past eight — or straight after the table ends when dinner runs late. The measure is one thing: what comes after the meal.\n\nThat order solves half the problem. The other half is feeding him: give him enough at dinner, and then no extra feed afterwards unless he is genuinely hungry — a late feed inside the evening delays bedtime more than the dinner itself.\n\nAnd when dinner runs properly late, do not punish yourself. Choose three steps tonight — feed, recitation, dim light — and drop the bath. A shorter routine on one night is better than a full one that starts late.\n\nAnd when you leave the table, do not go straight back to the room — take five minutes for yourself first. That time is yours, not his: a little quiet before the night begins turns what follows from sacrifice into organised work.",
     },
     task: {
-      ar: "ابدئي الروتين مباشرة بعد العشاء أو بعد الصلاة بربع ساعة — ولا رضعة بعد العشاء الليلة.",
-      en: "Start the routine right after dinner or 15 minutes after Isha — and no extra feed tonight.",
+      ar: "ابدئي الروتين مباشرة بعد العشاء أو بعده بربع ساعة — ولا رضعة بعد العشاء الليلة.",
+      en: "Start the routine right after dinner, or fifteen minutes after the table ends — and no extra feed tonight.",
     },
     keywords: [
-      "isha",
-      "prayer",
       "dinner",
+      "late dinner",
       "family",
       "cultural",
       "عشاء",
-      "صلاة",
-      "صلاة العشاء",
+      "عشاء متأخر",
       "مائدة",
       "روتين",
     ],
@@ -604,7 +602,7 @@ export const LESSONS: readonly Lesson[] = [
       en: "You are not a guest in this night — and here is a share that works from the very first night.",
     },
     body: {
-      ar: "أنت لست ضيفاً في هذه الليلة. كثير من الآباء يظنّون أن دورهم أن يكونوا موجودين فقط، وهذا بالضبط ما يترك الأم وحدها مع أصعب نصف الليل.\n\nوالمشكلة العملية في معظم البيوت: الأم تستيقظ مع كل استيقاظ بينما يعمّ نومك العميق. والطفل يراقبكما معاً — فيتعلّم أن الليل يوقظ واحداً ويُبقي الآخر نائماً، فيلتفت إلى الأم أولاً.\n\nما ينفع فعلاً هو التقسيم المسبق. اتفقا قبل النوم على الساعة التي تستلم فيها الأم والتي تستلم فيها أنت. مثال عملي: من الحادية حتى الثالثة الأم، ومن الثالثة حتى الفجر أنت — أو العكس إن كان نومك أعمق قبل الفجر.\n\nوقواعد بسيطة تجعل الاستلام سهلاً. لا تحمله في أول مرة تصعد — اترك الأم هي من تهدّئه ثم خُذ منه. لا تفتح الأنوار ولا تسحب الستارة: إضاءة خافتة وصمت. ولا تعُد إلى الغرفة لمجرد أنه بكى — انتظر دقيقتين، فصوتك من الباب يهدم ما بناه السرير.\n\nوأهمّ ما في ذلك كله: أخبر الأم بما لاحظته لا بما توصلتَ إليه. «نام عند الثانية ونصف» ملاحظة، أما الحل الذي توصلتم إليه فهو قرارٌ مشترك. الملاحظة بيانات.\n\nوأخيراً: دور الأب ليس أن تُصلح ما تقوله الخطة أسرع، بل أن تحمل نصف الليل بأناقة. حين تستيقظ في الثالثة فتجد الطفل هادئاً، تكون قد وفّرتِ لها ساعتين كاملتين من النوم — وأكبر هدية في البيت.",
+      ar: "أنت لست ضيفاً في هذه الليلة. كثير من الآباء يظنّون أن دورهم أن يكونوا موجودين فقط، وهذا بالضبط ما يترك الأم وحدها مع أصعب نصف الليل.\n\nوالمشكلة العملية في معظم البيوت: الأم تستيقظ مع كل استيقاظ بينما يعمّ نومك العميق. والطفل يراقبكما معاً — فيتعلّم أن الليل يوقظ واحداً ويُبقي الآخر نائماً، فيلتفت إلى الأم أولاً.\n\nما ينفع فعلاً هو التقسيم المسبق. اتفقا قبل النوم على الساعة التي تستلم فيها الأم والتي تستلم فيها أنت. مثال عملي: من الحادية حتى الثالثة الأم، ومن الثالثة حتى الشروق أنت — أو العكس إن كان نومك أعمق قبل الشروق.\n\nوقواعد بسيطة تجعل الاستلام سهلاً. لا تحمله في أول مرة تصعد — اترك الأم هي من تهدّئه ثم خُذ منه. لا تفتح الأنوار ولا تسحب الستارة: إضاءة خافتة وصمت. ولا تعُد إلى الغرفة لمجرد أنه بكى — انتظر دقيقتين، فصوتك من الباب يهدم ما بناه السرير.\n\nوأهمّ ما في ذلك كله: أخبر الأم بما لاحظته لا بما توصلتَ إليه. «نام عند الثانية ونصف» ملاحظة، أما الحل الذي توصلتم إليه فهو قرارٌ مشترك. الملاحظة بيانات.\n\nوأخيراً: دور الأب ليس أن تُصلح ما تقوله الخطة أسرع، بل أن تحمل نصف الليل بأناقة. حين تستيقظ في الثالثة فتجد الطفل هادئاً، تكون قد وفّرتِ لها ساعتين كاملتين من النوم — وأكبر هدية في البيت.",
       en: "You are not a guest in this night. Many fathers assume their job is to be present, and that is exactly what leaves the mother alone with the hardest half of the night.\n\nThe practical problem in most homes: she wakes with every wake-up while you sleep on deeply. The baby watches both of you — and learns that night wakes one person and lets the other sleep, which is why he turns to her first.\n\nWhat genuinely works is splitting the night in advance. Agree before bed on the hour she takes and the hour you take. A workable split: she covers eleven until two, you cover two until dawn, or the other way round if your sleep is deepest before morning.\n\nA few simple rules make the handover easy. Do not pick him up the first time you go in — let her settle him, then take him from her. Do not switch on lights or open the curtains: dim and quiet. And do not come back into the room just because he cried — wait two minutes, because your voice in the doorway undoes what the cot has built.\n\nAnd the most important part of all: tell her what you noticed, not what you concluded. He settled at half past two is an observation; a solution you have both agreed on is a shared decision. An observation is data.\n\nAnd last of all: a father's part is not to correct the plan faster, but to carry half the night well. When he wakes at two and finds the baby calm, you have bought her two full hours of sleep — the largest gift in the house.",
     },
     task: {

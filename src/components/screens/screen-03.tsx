@@ -32,6 +32,7 @@ import {
   fillText,
   formatAgeMonths,
   formatPlanReason,
+  formatTime,
   type Lang,
 } from "@/lib/i18n";
 import { useLang } from "@/lib/lang";
@@ -92,6 +93,7 @@ function TimelineRow({
   last: boolean;
   onToggle: () => void;
 }) {
+  const lang = useLang();
   const panelId = `timeline-reason-${item.id}`;
 
   return (
@@ -106,7 +108,7 @@ function TimelineRow({
       >
         <span className="w-12 shrink-0 pt-0.5 text-end text-sm text-nmd">
           <span dir="ltr" className="ltr-inline">
-            {item.time}
+            {formatTime(lang, item.time)}
           </span>
         </span>
 
@@ -269,7 +271,7 @@ function ShareCard({
                 </span>
                 <span className="shrink-0 text-sm text-gold">
                   <span dir="ltr" className="ltr-inline">
-                    {item.time}
+                    {formatTime(lang, item.time)}
                   </span>
                 </span>
               </li>
@@ -674,7 +676,11 @@ export function Screen03() {
                   role="status"
                   className="rounded-2xl border border-gold/30 bg-gold/10 px-4 py-3 text-center text-sm leading-relaxed text-gold"
                 >
-                  {fillText(t.startedNotice, { time: plan.routineStart })}
+                  {
+                    fillText(t.startedNotice, {
+                      time: formatTime(lang, plan.routineStart),
+                    })
+                  }
                 </p>
                 <Link
                   href="/routine"

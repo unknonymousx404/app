@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { Minus, Pencil, Plus } from "lucide-react";
 import { TabBar } from "@/components/nav/tabbar";
 import { Button } from "@/components/ui/button";
+import { TimeField12 } from "@/components/ui/time-field-12";
 import { ageParts, localIsoDate } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
 import { useChildName } from "@/lib/child-name";
@@ -22,7 +23,13 @@ import {
   parseClock,
 } from "@/lib/engine/age-rules";
 import { buildFirstPlan } from "@/lib/engine/first-plan";
-import { NIGHTS, fillText, formatAgeMonths, type Lang } from "@/lib/i18n";
+import {
+  NIGHTS,
+  fillText,
+  formatAgeMonths,
+  formatTime,
+  type Lang,
+} from "@/lib/i18n";
 import { useLang } from "@/lib/lang";
 import {
   DEMO_PROFILE,
@@ -205,7 +212,7 @@ function NightForm({
               }}
             >
               <span dir="ltr" className="ltr-inline">
-                {time}
+                {formatTime(lang, time)}
               </span>
             </Chip>
           ))}
@@ -225,12 +232,12 @@ function NightForm({
         </div>
 
         {customOpen ? (
-          <input
-            type="time"
-            value={sleepTime ?? ""}
-            onChange={(event) => setSleepTime(event.target.value || null)}
-            aria-label={fillText(t.timePickerAria, { name })}
-            className="mt-3 h-11 w-full rounded-2xl border border-nline bg-nsoft px-3 text-sm text-nhi outline-none focus-visible:border-gold/60 focus-visible:ring-2 focus-visible:ring-gold/40"
+          <TimeField12
+            label={fillText(t.timePickerAria, { name })}
+            lang={lang}
+            value={sleepTime ?? planBedtime}
+            onChange={(next) => setSleepTime(next || null)}
+            className="mt-3"
           />
         ) : null}
       </section>
@@ -383,7 +390,7 @@ function NightSummary({
       label: t.summarySleep,
       value: (
         <span dir="ltr" className="ltr-inline">
-          {night.sleepTime}
+          {formatTime(lang, night.sleepTime)}
         </span>
       ),
     },

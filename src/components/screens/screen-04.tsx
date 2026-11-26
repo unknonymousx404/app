@@ -23,6 +23,7 @@ import {
 import { TabBar } from "@/components/nav/tabbar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { TimeField12 } from "@/components/ui/time-field-12";
 import { ageParts, localIsoDate } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
 import { useChildName } from "@/lib/child-name";
@@ -42,6 +43,7 @@ import {
   ROUTINE,
   fillText,
   formatAgeMonths,
+  formatTime,
   routineStepText,
   routineTemplateNote,
 } from "@/lib/i18n";
@@ -386,7 +388,7 @@ export function Screen04() {
     const cancel = scheduleEveningReminder({
       time: effectiveReminderTime,
       title: fillText(t.reminderNotifyTitle, {
-        time: effectiveReminderTime,
+        time: formatTime(lang, effectiveReminderTime),
       }),
       body: t.reminderNotifyBody,
     });
@@ -663,7 +665,7 @@ export function Screen04() {
                         dir="ltr"
                         className="ltr-inline text-xs text-nlo tabular-nums"
                       >
-                        {step.startTime}
+                        {formatTime(lang, step.startTime)}
                       </span>
                       {editing ? (
                         <button
@@ -847,23 +849,18 @@ export function Screen04() {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="routine-start"
-                    className="text-xs font-medium text-gold"
-                  >
+                  <p className="text-xs font-medium text-gold">
                     {t.startTimeLabel}
-                  </label>
+                  </p>
                   <p className="mt-1 text-[11px] leading-relaxed text-ndim">
                     {t.startTimeHint}
                   </p>
-                  <input
-                    id="routine-start"
-                    type="time"
+                  <TimeField12
+                    label={t.startTimeLabel}
+                    lang={lang}
                     value={startClock}
-                    onChange={(event) =>
-                      setStartOverride(event.target.value || null)
-                    }
-                    className="mt-2 h-11 w-full rounded-2xl border border-nline bg-ncard px-3 text-sm text-nhi [color-scheme:dark]"
+                    onChange={(next) => setStartOverride(next || null)}
+                    className="mt-2"
                   />
                 </div>
 
@@ -884,23 +881,17 @@ export function Screen04() {
               {t.reminderBody}
             </p>
 
-            <label
-              htmlFor="routine-reminder"
-              className="mt-3 block text-xs font-medium text-gold"
-            >
+            <p className="mt-3 text-xs font-medium text-gold">
               {t.reminderTimeLabel}
-            </label>
-            <input
-              id="routine-reminder"
-              type="time"
+            </p>
+            <TimeField12
+              label={t.reminderTimeLabel}
+              lang={lang}
               value={effectiveReminderTime}
-              onChange={(event) =>
-                setReminder(
-                  reminderEnabled,
-                  event.target.value || defaultReminderTime,
-                )
+              onChange={(next) =>
+                setReminder(reminderEnabled, next || defaultReminderTime)
               }
-              className="mt-2 h-11 w-full rounded-2xl border border-nline bg-nsoft px-3 text-sm text-nhi [color-scheme:dark]"
+              className="mt-2"
             />
             <p className="mt-1 text-[11px] leading-relaxed text-ndim">
               {t.reminderTimeHint}

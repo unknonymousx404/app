@@ -1,4 +1,4 @@
-import { formatAge } from "@/lib/i18n";
+import { formatAge, formatTime } from "@/lib/i18n";
 import type { Lang } from "@/lib/i18n";
 import type { FirstPlan } from "@/lib/engine/first-plan";
 import type { GrowingProfile } from "@/lib/store/profile";
@@ -68,7 +68,7 @@ function lessonForTemplate(
     case "frequent-wakes":
       return survivalGuideForAge(months).id;
     case "late-routine":
-      return "context-prayer";
+      return "context-dinner";
     case "grandma-nap":
       return "nap-grandma";
     case "tangled-regression":
@@ -86,12 +86,14 @@ export function buildBaseAnswer(context: AnswerContext): BaseAnswer {
   const ageText = lang === "ar"
     ? `عمر ${age.days} يوماً (${age.exact.replace(" — ضمن نافذة تدريب مثالية", "")})`
     : `${age.days} days old`;
+  const feedTime = formatTime(lang, plan.lastFeed);
+  const bedTime = formatTime(lang, plan.bedtime);
   const lastPlan = lang === "ar"
-    ? `خطة الأمس التي نبني عليها الليلة تفصل آخر رضعة عند ${plan.lastFeed} عن السرير عند ${plan.bedtime} بعشرين دقيقة.`
-    : `The saved plan from yesterday, which we are carrying into tonight, keeps the last feed at ${plan.lastFeed}, twenty minutes before bed at ${plan.bedtime}.`;
+    ? `خطة الأمس التي نبني عليها الليلة تفصل آخر رضعة عند ${feedTime} عن السرير عند ${bedTime} بعشرين دقيقة.`
+    : `The saved plan from yesterday, which we are carrying into tonight, keeps the last feed at ${feedTime}, twenty minutes before bed at ${bedTime}.`;
   const step = lang === "ar"
-    ? `خطوة الليلة: التزمي بموعد ${plan.lastFeed}، ثم ضعيها يقظة وهادئة عند ${plan.bedtime}، ولا نحتاج قياساً بعد ذلك.`
-    : `Tonight's step: keep ${plan.lastFeed}, then place your baby calm and awake at ${plan.bedtime}; no tracking after that.`;
+    ? `خطوة الليلة: التزمي بموعد ${feedTime}، ثم ضعيها يقظة وهادئة عند ${bedTime}، ولا نحتاج قياساً بعد ذلك.`
+    : `Tonight's step: keep ${feedTime}, then place your baby calm and awake at ${bedTime}; no tracking after that.`;
   const pattern = pickTemplate(question);
 
   if (lang === "en") {
