@@ -48,8 +48,12 @@ export const DEMO_PROFILE: GrowingProfile = {
 interface ProfileState extends ProfileAnswers {
   chatSummaries?: string[];
   adjustments?: unknown[];
+  /** جلسة عرض تجريبية (?demo=1) — تُحفظ كي تصحب الشارة التنقل بين التبويبات. */
+  demo: boolean;
   saveProfile: (profile: GrowingProfile) => void;
   addChatSummary: (summary: string) => void;
+  enterDemo: () => void;
+  exitDemo: () => void;
   resetProfile: () => void;
 }
 
@@ -57,7 +61,10 @@ export const useProfile = create<ProfileState>()(
   persist(
     (set) => ({
       ...EMPTY_ANSWERS,
+      demo: false,
       saveProfile: (profile) => set(profile),
+      enterDemo: () => set({ demo: true }),
+      exitDemo: () => set({ ...EMPTY_ANSWERS, demo: false }),
       addChatSummary: (summary) =>
         set((state) => ({
           chatSummaries: [...(state.chatSummaries ?? []), summary].slice(-30),
@@ -68,12 +75,20 @@ export const useProfile = create<ProfileState>()(
       name: "raha.profile",
       version: 1,
       // نحفظ الحقول الأربعة وحدها — لا دوال ولا حالة واجهة.
-      partialize: ({ birthDate, worstProblem, wakePattern, priorityGoal, chatSummaries }) => ({
+      partialize: ({
         birthDate,
         worstProblem,
         wakePattern,
         priorityGoal,
         chatSummaries,
+        demo,
+      }) => ({
+        birthDate,
+        worstProblem,
+        wakePattern,
+        priorityGoal,
+        chatSummaries,
+        demo,
       }),
     },
   ),

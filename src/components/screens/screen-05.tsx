@@ -1,5 +1,7 @@
 "use client";
 
+import { DemoBadge } from "@/components/demo-badge";
+
 import {
   useEffect,
   useMemo,
@@ -13,6 +15,7 @@ import { TabBar } from "@/components/nav/tabbar";
 import { Button } from "@/components/ui/button";
 import { ageParts, localIsoDate } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
+import { useChildName } from "@/lib/child-name";
 import {
   ageRulesForMonths,
   formatClock,
@@ -131,7 +134,7 @@ function NightForm({
   onEmergency: (draft: Omit<NightRecord, "date" | "emergency">) => void;
 }) {
   const t = NIGHTS[lang];
-  const name = t.childName;
+  const name = useChildName();
 
   const [sleepTime, setSleepTime] = useState<string | null>(
     initial?.sleepTime ?? null,
@@ -473,6 +476,7 @@ function NightSummary({
 export function Screen05() {
   const lang = useLang();
   const t = NIGHTS[lang];
+  const childName = useChildName();
   const router = useRouter();
   const profile = useProfile();
   const storedPlan = usePlan((state) => state.plan);
@@ -569,6 +573,8 @@ export function Screen05() {
     <main className="flex h-dvh justify-center bg-night-deep sm:items-center">
       <div className="flex h-dvh w-full max-w-[420px] flex-col bg-night sm:h-[min(860px,calc(100dvh-4rem))] sm:rounded-[2.5rem] sm:border sm:border-frame">
         <div className="no-scrollbar flex-1 overflow-y-auto px-6 pt-6 pb-8 sm:px-7">
+          <DemoBadge />
+
           <header>
             <div className="flex items-center gap-2.5">
               <span
@@ -586,7 +592,7 @@ export function Screen05() {
             </h1>
             <p className="mt-1 text-sm text-nlo">
               {fillText(t.subline, {
-                name: t.childName,
+                name: childName,
                 age: formatAgeMonths(lang, plan.ageMonths),
               })}
             </p>

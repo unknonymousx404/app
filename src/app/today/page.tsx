@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
+import { ProfileGate } from "@/components/profile-gate";
 import { Screen03 } from "@/components/screens/screen-03";
 import { Screen05 } from "@/components/screens/screen-05";
 
@@ -46,5 +47,9 @@ export default function TodayPage() {
     );
   }
 
-  return morning ? <Screen05 /> : <Screen03 />;
+  return (
+    <ProfileGate>
+      {morning ? <Screen05 /> : <Screen03 />}
+    </ProfileGate>
+  );
 }

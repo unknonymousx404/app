@@ -11,11 +11,15 @@ import {
 import { toBlob } from "html-to-image";
 import Link from "next/link";
 import { ChevronDown, Share2, Sparkles } from "lucide-react";
+import { DemoBadge } from "@/components/demo-badge";
+import { InstallBanner } from "@/components/install-banner";
 import { TabBar } from "@/components/nav/tabbar";
 import { NightTasksCard } from "@/components/screens/night-tasks-card";
+import { TonightMissionCard } from "@/components/screens/tonight-mission";
 import { Button } from "@/components/ui/button";
 import { ageParts } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
+import { useChildName } from "@/lib/child-name";
 import { ageRulesForMonths } from "@/lib/engine/age-rules";
 import {
   buildFirstPlan,
@@ -301,6 +305,7 @@ function ShareCard({
 export function Screen03() {
   const lang = useLang();
   const t = PLAN[lang];
+  const childName = useChildName();
   const profile = useProfile();
   const storedPlan = usePlan((state) => state.plan);
   const savePlan = usePlan((state) => state.savePlan);
@@ -543,6 +548,8 @@ export function Screen03() {
     <main className="flex h-dvh justify-center bg-night-deep sm:items-center">
       <div className="flex h-dvh w-full max-w-[420px] flex-col bg-night sm:h-[min(860px,calc(100dvh-4rem))] sm:rounded-[2.5rem] sm:border sm:border-frame">
         <div className="no-scrollbar flex-1 overflow-y-auto px-6 pt-6 pb-8 sm:px-7">
+          <DemoBadge />
+
           <header>
             <div className="flex items-center gap-2.5">
               <span
@@ -556,14 +563,23 @@ export function Screen03() {
             </div>
 
             <h1 className="mt-5 text-2xl leading-snug font-medium text-nhi">
-              {t.headerTitle}
+              {fillText(t.headerTitle, { name: childName })}
             </h1>
             <p className="mt-1 text-sm text-nlo">
               {fillText(t.headerSubline, {
+                name: childName,
                 age: formatAgeMonths(lang, plan.ageMonths),
               })}
             </p>
           </header>
+
+          <InstallBanner />
+
+          <TonightMissionCard
+            plan={plan}
+            worstProblem={worstProblem}
+            childName={childName}
+          />
 
           <section className="mt-7" aria-labelledby="tonight-title">
             <div className="flex items-end justify-between gap-3">
@@ -643,6 +659,7 @@ export function Screen03() {
             </div>
             <p className="mt-2 text-sm leading-relaxed text-nmd">
               {fillText(t.whyBody, {
+                name: childName,
                 age: formatAgeMonths(lang, plan.ageMonths),
               })}
             </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { ProfileGate } from "@/components/profile-gate";
 import { Screen09 } from "@/components/screens/screen-09";
 
 // الشاشة 09 — مكتبة النوم: 15 درساً علاجياً.
@@ -20,7 +21,9 @@ export default function LibraryPage() {
         </main>
       }
     >
-      <Screen09 />
+      <ProfileGate>
+        <Screen09 />
+      </ProfileGate>
     </Suspense>
   );
 }

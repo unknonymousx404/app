@@ -1,22 +1,26 @@
 "use client";
 
+import { DemoBadge } from "@/components/demo-badge";
+
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Check, Clock, Plus, Search } from "lucide-react";
 import { TabBar } from "@/components/nav/tabbar";
 import { LessonArt } from "@/components/screens/lesson-art";
 import { Button } from "@/components/ui/button";
-import { localIsoDate } from "@/lib/age";
+import { ageParts, localIsoDate } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
 import {
   getLesson,
   lessonParagraphs,
   pick,
   searchLessons,
+  survivalGuideForAge,
   type LessonCategory,
 } from "@/lib/content/library";
 import { LIBRARY, fillText } from "@/lib/i18n";
 import { useLang } from "@/lib/lang";
+import { DEMO_PROFILE, isProfileComplete, useProfile } from "@/lib/store/profile";
 import { useTasks } from "@/lib/store/tasks";
 
 // بوابة التركيب — الخادم يعرض الهيكل، والعميل يبني المكتبة.
@@ -57,6 +61,7 @@ export function Screen09() {
 
   const tasks = useTasks((state) => state.tasks);
   const addTask = useTasks((state) => state.addTask);
+  const profile = useProfile();
 
   const hydrated = useSyncExternalStore(
     subscribeToHydration,
@@ -68,6 +73,15 @@ export function Screen09() {
     () => (hydrated ? localIsoDate(new Date()) : ""),
     [hydrated],
   );
+
+  // عمر الطفل من ملفه — شارة «الأنسب لعمر طفلك» في المكتبة.
+  // في وضع العرض وحده يُستخدم ملف العائلة المرجعية.
+  const ageFitLessonId = useMemo(() => {
+    if (!hydrated) return null;
+    const source = isProfileComplete(profile) ? profile : DEMO_PROFILE;
+    const age = ageParts(source.birthDate);
+    return age === null ? null : survivalGuideForAge(age.months).id;
+  }, [hydrated, profile]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -121,6 +135,8 @@ export function Screen09() {
       <main className="flex h-dvh justify-center bg-night-deep sm:items-center">
         <div className="flex h-dvh w-full max-w-[420px] flex-col bg-night sm:h-[min(860px,calc(100dvh-4rem))] sm:rounded-[2.5rem] sm:border sm:border-frame">
           <div className="no-scrollbar flex-1 overflow-y-auto px-6 pt-6 pb-8 sm:px-7">
+            <DemoBadge />
+
             <button
               type="button"
               onClick={closeLesson}
@@ -136,6 +152,12 @@ export function Screen09() {
             <h1 className="mt-4 text-2xl leading-snug font-medium text-nhi">
               {pick(lesson.title, lang)}
             </h1>
+
+            {lesson.id === ageFitLessonId ? (
+              <p className="mt-2 inline-flex rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[11px] text-gold">
+                {t.ageFitBadge}
+              </p>
+            ) : null}
             <p className="mt-2 text-sm leading-relaxed text-nlo">
               {pick(lesson.description, lang)}
             </p>
@@ -197,6 +219,8 @@ export function Screen09() {
     <main className="flex h-dvh justify-center bg-night-deep sm:items-center">
       <div className="flex h-dvh w-full max-w-[420px] flex-col bg-night sm:h-[min(860px,calc(100dvh-4rem))] sm:rounded-[2.5rem] sm:border sm:border-frame">
         <div className="no-scrollbar flex-1 overflow-y-auto px-6 pt-6 pb-8 sm:px-7">
+          <DemoBadge />
+
           <header>
             <div className="flex items-center gap-2.5">
               <span
@@ -276,9 +300,16 @@ export function Screen09() {
                     className="w-full rounded-3xl border border-nline bg-ncard px-4 py-4 text-start transition-colors hover:bg-nsoft"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="text-sm leading-snug font-medium text-nhi">
-                        {pick(entry.title, lang)}
-                      </h2>
+                      <div className="min-w-0">
+                        <h2 className="text-sm leading-snug font-medium text-nhi">
+                          {pick(entry.title, lang)}
+                        </h2>
+                        {entry.id === ageFitLessonId ? (
+                          <span className="mt-1.5 inline-flex rounded-full bg-gold/15 px-2 py-0.5 text-[10px] text-gold">
+                            {t.ageFitBadge}
+                          </span>
+                        ) : null}
+                      </div>
                       <span
                         dir="ltr"
                         className="ltr-inline shrink-0 text-[11px] text-ndim"

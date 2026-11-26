@@ -1,5 +1,7 @@
 "use client";
 
+import { DemoBadge } from "@/components/demo-badge";
+
 import {
   useCallback,
   useEffect,
@@ -23,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ageParts, localIsoDate } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
+import { useChildName } from "@/lib/child-name";
 import { createChime } from "@/lib/audio";
 import { formatClock, parseClock } from "@/lib/engine/age-rules";
 import {
@@ -140,6 +143,7 @@ function RingTimer({
 export function Screen04() {
   const lang = useLang();
   const t = ROUTINE[lang];
+  const childName = useChildName();
 
   const hydrated = useSyncExternalStore(
     subscribeToHydration,
@@ -504,6 +508,8 @@ export function Screen04() {
         }`}
       >
         <div className="no-scrollbar flex-1 overflow-y-auto px-6 pt-6 pb-8 sm:px-7">
+          <DemoBadge />
+
           <header>
             <div className="flex items-center gap-2.5">
               <span
@@ -521,6 +527,7 @@ export function Screen04() {
             </h1>
             <p className="mt-1 text-sm text-nlo">
               {fillText(t.headerSubline, {
+                name: childName,
                 age: formatAgeMonths(lang, age.months),
               })}
             </p>

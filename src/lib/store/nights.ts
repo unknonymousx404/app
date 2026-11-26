@@ -19,11 +19,14 @@ export interface NightRecord {
 
 interface NightsState {
   nights: NightRecord[];
+  /** هل الليالي الحالية بيانات عرض تجريبية؟ يُمسح العرض وحده عند إغلاقه. */
+  demoSeeded?: boolean;
   /** إضافة أو تعديل — نفس التاريخ يعني تعديلاً لا تكراراً. */
   saveNight: (record: NightRecord) => void;
   removeNight: (date: string) => void;
   seedDemoNights: () => void;
   clearNights: () => void;
+  clearDemoNights: () => void;
 }
 
 // ترتيب تصاعدي بالتاريخ — أحدث ليلة في النهاية.
@@ -92,13 +95,18 @@ export const useNights = create<NightsState>()(
         set((state) => ({
           nights: state.nights.filter((night) => night.date !== date),
         })),
-      seedDemoNights: () => set({ nights: sortNights(demoNights()) }),
-      clearNights: () => set({ nights: [] }),
+      seedDemoNights: () =>
+        set({ nights: sortNights(demoNights()), demoSeeded: true }),
+      clearNights: () => set({ nights: [], demoSeeded: false }),
+      clearDemoNights: () =>
+        set((state) =>
+          state.demoSeeded ? { nights: [], demoSeeded: false } : state,
+        ),
     }),
     {
       name: "raha.nights",
       version: 1,
-      partialize: ({ nights }) => ({ nights }),
+      partialize: ({ nights, demoSeeded }) => ({ nights, demoSeeded }),
     },
   ),
 );

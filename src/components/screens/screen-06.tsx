@@ -1,5 +1,7 @@
 "use client";
 
+import { DemoBadge } from "@/components/demo-badge";
+
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
@@ -15,6 +17,7 @@ import { NightTasksCard } from "@/components/screens/night-tasks-card";
 import { Button } from "@/components/ui/button";
 import { ageParts, localIsoDate } from "@/lib/age";
 import { BRAND } from "@/lib/brand";
+import { useChildName } from "@/lib/child-name";
 import { survivalGuideForAge } from "@/lib/content/library";
 import { ageRulesForMonths } from "@/lib/engine/age-rules";
 import {
@@ -214,6 +217,7 @@ function ModeCard({
 export function Screen06() {
   const lang = useLang();
   const t = ADJUSTMENTS[lang];
+  const childName = useChildName();
   const profile = useProfile();
   const storedPlan = usePlan((state) => state.plan);
   const storedBase = usePlan((state) => state.base);
@@ -484,6 +488,8 @@ export function Screen06() {
     <main className="flex h-dvh justify-center bg-night-deep sm:items-center">
       <div className="flex h-dvh w-full max-w-[420px] flex-col bg-night sm:h-[min(860px,calc(100dvh-4rem))] sm:rounded-[2.5rem] sm:border sm:border-frame">
         <div className="no-scrollbar flex-1 overflow-y-auto px-6 pt-6 pb-8 sm:px-7">
+          <DemoBadge />
+
           <header>
             <div className="flex items-center gap-2.5">
               <span
@@ -497,10 +503,11 @@ export function Screen06() {
             </div>
 
             <h1 className="mt-5 text-2xl leading-snug font-medium text-nhi">
-              {t.headerTitle}
+              {fillText(t.headerTitle, { name: childName })}
             </h1>
             <p className="mt-1 text-sm text-nlo">
               {fillText(t.headerSubline, {
+                name: childName,
                 age: formatAgeMonths(lang, age.months),
               })}
             </p>

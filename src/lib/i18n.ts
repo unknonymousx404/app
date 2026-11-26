@@ -75,7 +75,7 @@ const profileAr = {
   goalEarlierBedtime: "موعد نوم أبكر وأثبت",
 
   doneEyebrow: "اكتمل الملف",
-  doneTitle: "اكتمل ملف ليان — لنبنِ خطتك الأولى",
+  doneTitle: "اكتمل ملف طفلك — لنبنِ خطتك الأولى",
   doneIntro: "أربع إجابات فقط، وهذا ما سنبني عليه كل ليلة.",
   summaryBirth: "تاريخ الميلاد",
   summaryProblem: "أصعب ما في النوم",
@@ -131,7 +131,7 @@ export const PROFILE: Record<Lang, Record<ProfileKeys, string>> = {
     goalEarlierBedtime: "An earlier, steadier bedtime",
 
     doneEyebrow: "Profile complete",
-    doneTitle: "Layan's profile is complete — let's build your first plan",
+    doneTitle: "Your baby's profile is complete — let's build your first plan",
     doneIntro: "Four answers, and every night from here builds on them.",
     summaryBirth: "Date of birth",
     summaryProblem: "Hardest right now",
@@ -147,8 +147,8 @@ export const PROFILE: Record<Lang, Record<ProfileKeys, string>> = {
 // كل النصوص من docs/screens.md § الشاشة 03، والقيم المتغيرة تُملأ من المحرك.
 const planAr = {
   docTitle: "خطة اليوم",
-  headerTitle: "خطة ليان — اليوم الأول",
-  headerSubline: "ليان · {age}",
+  headerTitle: "خطة {name} — اليوم الأول",
+  headerSubline: "{name} · {age}",
 
   tonightTitle: "جدول الليلة",
   tonightHint: "اضغطي أي محطة لترى سببها",
@@ -175,9 +175,13 @@ const planAr = {
 
   whyTitle: "لماذا هذه الخطة تحديداً؟",
   whyBody:
-    "مبنية على عمر ليان ({age}) ونمط استيقاظها الذي اخترتِه. اضغطي أي عنصر لتري سببه كاملاً — لا قرارات خفية في راحة.",
+    "مبنية على عمر {name} ({age}) ونمط الاستيقاظ الذي اخترتِه. اضغطي أي عنصر لتري سببه كاملاً — لا قرارات خفية في راحة.",
   whyLabel: "السبب",
   closeReason: "إغلاق السبب",
+
+  missionTitle: "مهمة {name} الليلة",
+  missionWhy: "من ملف {name} وخطة الليلة — الأنسب لعمر {age} الآن.",
+  missionOpen: "افتحي الدرس",
 
   startCta: "حسناً — ابدئي الليلة",
   startedNotice: "تم — خطتك لهذه الليلة جاهزة. نبدأ {time}.",
@@ -206,8 +210,8 @@ export const PLAN: Record<Lang, Record<PlanKeys, string>> = {
   ar: planAr,
   en: {
     docTitle: "Today's plan",
-    headerTitle: "Layan's plan — Day one",
-    headerSubline: "Layan · {age}",
+    headerTitle: "{name}'s plan — Day one",
+    headerSubline: "{name} · {age}",
 
     tonightTitle: "Tonight's schedule",
     tonightHint: "Tap any step to see why",
@@ -234,9 +238,14 @@ export const PLAN: Record<Lang, Record<PlanKeys, string>> = {
 
     whyTitle: "Why this plan, specifically?",
     whyBody:
-      "Built on Layan's age ({age}) and the wake pattern you chose. Tap any item to see its full reason — no hidden decisions in RahaMoon.",
+      "Built on {name}'s age ({age}) and the wake pattern you chose. Tap any item to see its full reason — no hidden decisions in RahaMoon.",
     whyLabel: "Why",
     closeReason: "Close reason",
+
+    missionTitle: "{name}'s mission tonight",
+    missionWhy:
+      "From {name}'s profile and tonight's plan — the closest fit for {age} right now.",
+    missionOpen: "Open the lesson",
 
     startCta: "Okay — start tonight",
     startedNotice: "Done — tonight's plan is set. We start at {time}.",
@@ -681,7 +690,7 @@ export function formatAgeMonths(lang: Lang, months: number): string {
 const askAr = {
   docTitle: "اسألي راحة",
   headerTitle: "اسألي راحة",
-  headerBody: "يجيب من ملف ليان وخطتك، لا من الذاكرة العامة",
+  headerBody: "يجيب من ملف طفلك وخطتك، لا من الذاكرة العامة",
   placeholder: "اسألي أي شيء يؤرقك الليلة...",
   send: "إرسال السؤال",
   motherLabel: "رسالتك",
@@ -694,9 +703,9 @@ const askAr = {
   tomorrowAdded: "تم — سأعيد السؤال غداً صباحاً.",
   safetyTitle: "الأفضل أن يطمئن عليكِ طبيب",
   safetyBody: "هذا الوصف يحتاج تقييماً طبياً مباشراً. تواصلي مع طبيب الأطفال أو خدمة الطوارئ المحلية الآن، من فضلك.",
-  empty: "اكتبي سؤالك، وسأربطه بملف ليان وخطة الليلة.",
+  empty: "اكتبي سؤالك، وسأربطه بملف طفلك وخطة الليلة.",
   saved: "المحادثة محفوظة على جهازك.",
-  noPlan: "أجهز خطة ليان المحفوظة أولاً، ثم أجيبك.",
+  noPlan: "أجهز خطة طفلك المحفوظة أولاً، ثم أجيبك.",
 } as const;
 
 type AskKeys = keyof typeof askAr;
@@ -706,7 +715,7 @@ export const ASK: Record<Lang, Record<AskKeys, string>> = {
   en: {
     docTitle: "Ask Raha",
     headerTitle: "Ask Raha",
-    headerBody: "Answers from Layan's profile and your plan, not general memory",
+    headerBody: "Answers from your baby's profile and your plan, not general memory",
     placeholder: "Ask anything keeping you up tonight...",
     send: "Send question",
     motherLabel: "Your message",
@@ -719,9 +728,9 @@ export const ASK: Record<Lang, Record<AskKeys, string>> = {
     tomorrowAdded: "Done — I'll ask again tomorrow morning.",
     safetyTitle: "A doctor should check this",
     safetyBody: "This needs direct medical assessment. Please contact your baby's doctor or your local emergency service now.",
-    empty: "Ask your question and I'll connect it to Layan's profile and tonight's plan.",
+    empty: "Ask your question and I'll connect it to your baby's profile and tonight's plan.",
     saved: "This conversation is saved on your device.",
-    noPlan: "I am loading Layan's saved plan first, then I'll answer.",
+    noPlan: "I am loading your baby's saved plan first, then I'll answer.",
   },
 };
 
@@ -730,8 +739,8 @@ export const ASK: Record<Lang, Record<AskKeys, string>> = {
 
 const adjustmentsAr = {
   docTitle: "خطة اليوم المعدّلة",
-  headerTitle: "خطة ليان — خطة اليوم",
-  headerSubline: "ليان · {age}",
+  headerTitle: "خطة {name} — خطة اليوم",
+  headerSubline: "{name} · {age}",
   updatedEyebrow: "تحدّثت الآن",
 
   adjustEyebrow: "تعديل اليوم",
@@ -772,7 +781,7 @@ const adjustmentsAr = {
   rejectedHoldBody:
     "رفضت هذا التعديل منذ أقل من ثلاثة أيام، ولن نقترحه قبل أن تمرّ ثلاثة أيام كاملة. خطة الأمس كما هي، ونعود للسؤال بعدها.",
 
-  floorTitle: "وصلنا إلى أبكر موعد آمن لعمر ليان",
+  floorTitle: "وصلنا إلى أبكر موعد آمن لعمر طفلك",
   floorBody:
     "الخطة الآن عند أول نافذة العمر: لا تقديم إضافي اليوم. نثبّت الموعد حتى يستقر النمط، ثم نعيد النظر.",
 
@@ -788,7 +797,7 @@ const adjustmentsAr = {
   emergencyNote:
     "لا تعديلات اليوم، ولا مطاردة. أنزلنا التوقعات إلى معايير أسبوع سابق، وكل التوقيتات كما اعتمدتِها.",
   survivalLink: "دليل النجاة — افتحيه الآن",
-  survivalHint: "دليل عملي بثلاثة أيام، مبني على عمر ليان.",
+  survivalHint: "دليل عملي بثلاثة أيام، مبني على عمر طفلك.",
 
   ackCta: "شاهدت خطة اليوم — على الروتين مساءً",
   ackNotice: "تم — نراك على الروتين مساءً. بعدها يصمت التطبيق حتى الصباح.",
@@ -822,8 +831,8 @@ export const ADJUSTMENTS: Record<Lang, Record<AdjustmentsKeys, string>> = {
   ar: adjustmentsAr,
   en: {
     docTitle: "Today's adjusted plan",
-    headerTitle: "Layan's plan — today",
-    headerSubline: "Layan · {age}",
+    headerTitle: "{name}'s plan — today",
+    headerSubline: "{name} · {age}",
     updatedEyebrow: "Updated just now",
 
     adjustEyebrow: "Today's adjustment",
@@ -864,7 +873,7 @@ export const ADJUSTMENTS: Record<Lang, Record<AdjustmentsKeys, string>> = {
     rejectedHoldBody:
       "You rejected this change less than three days ago, so we won't suggest it again until three full days pass. Yesterday's plan stays as it is, and we ask again after that.",
 
-    floorTitle: "We've reached the earliest safe bedtime for Layan's age",
+    floorTitle: "We've reached the earliest safe bedtime for your baby's age",
     floorBody:
       "The plan now sits at the first edge of the age window: no further move today. We hold the time until the pattern settles, then look again.",
 
@@ -880,8 +889,7 @@ export const ADJUSTMENTS: Record<Lang, Record<AdjustmentsKeys, string>> = {
     emergencyNote:
       "No adjustments today, and no chasing. Expectations are lowered to a previous week's standard, and every timing stays as you set it.",
     survivalLink: "Survival guide — open it now",
-    survivalHint:
-      "A practical three-day guide, built around Layan's age.",
+        survivalHint: "A practical three-day guide, built around your baby's age.",
 
     ackCta: "I've seen today's plan — on the routine tonight",
     ackNotice: "Done — see you at the routine tonight. After that the app stays quiet until morning.",
@@ -943,7 +951,7 @@ export function formatAdjustmentReason(
 const routineAr = {
   docTitle: "روتين التهدئة",
   headerTitle: "روتين التهدئة",
-  headerSubline: "ليان · {age}",
+  headerSubline: "{name} · {age}",
   nightBadge: "الوضع الليلي — إضاءة هادئة",
 
   summarySteps: "{count} خطوات · {minutes} د",
@@ -1003,8 +1011,8 @@ const routineAr = {
     "هذا المتصفح لا يدعم الإشعارات — التذكير يظهر داخل التطبيق فقط.",
   reminderScheduled: "تم — التذكير مجدول قبل الروتين بعشر دقائق.",
   reminderOff: "التذكير موقوف.",
-  reminderNotifyTitle: "اقترب روتين ليان — {time}",
-  reminderNotifyBody: "اقترب روتين ليان. جهّزي الغرفة قبل عشر دقائق.",
+  reminderNotifyTitle: "اقترب روتين طفلك — {time}",
+  reminderNotifyBody: "اقترب روتين طفلك. جهّزي الغرفة قبل عشر دقائق.",
   minutesDecrease: "أنقصي {minutes} دقائق من {step}",
   minutesIncrease: "أضيفي {minutes} دقائق إلى {step}",
 
@@ -1035,7 +1043,7 @@ export const ROUTINE: Record<Lang, Record<RoutineKeys, string>> = {
   en: {
     docTitle: "Wind-down routine",
     headerTitle: "Wind-down routine",
-    headerSubline: "Layan · {age}",
+    headerSubline: "{name} · {age}",
     nightBadge: "Night mode — soft lighting",
 
     summarySteps: "{count} steps · {minutes} min",
@@ -1107,9 +1115,9 @@ export const ROUTINE: Record<Lang, Record<RoutineKeys, string>> = {
     reminderScheduled:
       "Done — the reminder is scheduled ten minutes before the routine.",
     reminderOff: "The reminder is off.",
-    reminderNotifyTitle: "Layan's routine is close — {time}",
+    reminderNotifyTitle: "Your baby's routine is close — {time}",
     reminderNotifyBody:
-      "Layan's routine is close. Prepare the room ten minutes ahead.",
+      "Your baby's routine is close. Prepare the room ten minutes ahead.",
     minutesDecrease: "Take {minutes} minutes off {step}",
     minutesIncrease: "Add {minutes} minutes to {step}",
 
@@ -1196,6 +1204,7 @@ const libraryAr = {
   noResults: "لا درس بهذه الكلمة — جرّبي «انحدار» أو «قيلولة» أو «سهرة».",
   minutesLabel: "{minutes} د",
   openLesson: "افتحي الدرس",
+  ageFitBadge: "الأنسب لعمر طفلك",
 
   backToLibrary: "رجوع إلى المكتبة",
   taskTitle: "مهمة الليلة",
@@ -1233,6 +1242,7 @@ export const LIBRARY: Record<Lang, Record<LibraryKeys, string>> = {
       "No lesson matches that word — try “regression”, “nap” or “evening”.",
     minutesLabel: "{minutes} min",
     openLesson: "Open the lesson",
+    ageFitBadge: "Best for your baby's age",
 
     backToLibrary: "Back to the library",
     taskTitle: "Tonight's task",
@@ -1275,7 +1285,7 @@ export const NIGHT_TASKS: Record<Lang, Record<string, string>> = {
 const progressAr = {
   docTitle: "تقدمي",
   headerTitle: "لحظات التقدم",
-  headerSubline: "ليان · {age}",
+  headerSubline: "{name} · {age}",
   eyebrow: "تقدم حقيقي، لا رسوم بيانات",
 
   summaryEyebrow: "الخلاصة",
@@ -1313,7 +1323,7 @@ const progressAr = {
   badgeAria: "{badge} — {state}",
 
   regressionLink: "دليل النجاة — افتحيه الآن",
-  regressionHint: "دليل عملي بثلاثة أيام، مبني على عمر ليان.",
+  regressionHint: "دليل عملي بثلاثة أيام، مبني على عمر طفلك.",
 
   disclaimer: "لا أيام فاشلة هنا — فقط بيانات تخدم خطة الغد",
 
@@ -1353,7 +1363,7 @@ export const PROGRESS: Record<Lang, Record<ProgressKeys, string>> = {
   en: {
     docTitle: "Progress",
     headerTitle: "Progress moments",
-    headerSubline: "Layan · {age}",
+    headerSubline: "{name} · {age}",
     eyebrow: "Real progress, not data charts",
 
     summaryEyebrow: "The summary",
@@ -1393,7 +1403,7 @@ export const PROGRESS: Record<Lang, Record<ProgressKeys, string>> = {
     badgeAria: "{badge} — {state}",
 
     regressionLink: "Survival guide — open it now",
-    regressionHint: "A practical three-day guide, built around Layan's age.",
+    regressionHint: "A practical three-day guide, built around your baby's age.",
 
     disclaimer: "No failed days here — only data serving tomorrow's plan",
 
@@ -1457,7 +1467,7 @@ export const WEEKDAYS: Record<Lang, string[]> = {
 // docs/engine.md §6: «إن لم يُسجَّل الصباح: إشعار لطيف واحد بعد الظهر —
 // لا مطاردة ولا عدّاد انقطاع». ولا إشعار ليلياً إطلاقاً.
 const notifyAr = {
-  nudgeTitle: "ليلة ليان؟",
+  nudgeTitle: "ليلة طفلك؟",
   nudgeBody: "ثلاث لمسات وسنعدّل خطة الغد",
 } as const;
 
@@ -1466,7 +1476,55 @@ type NotifyKeys = keyof typeof notifyAr;
 export const NOTIFY: Record<Lang, Record<NotifyKeys, string>> = {
   ar: notifyAr,
   en: {
-    nudgeTitle: "Layan's night?",
+    nudgeTitle: "Your baby's night?",
     nudgeBody: "Three taps and we'll adjust tomorrow's plan",
+  },
+};
+
+// ---------------------- أسماء الطفل في الواجهة ----------------------
+// الملف النامي أربعة حقول فقط (docs/screens.md §2) وبلا اسم؛ فالعائلة
+// المرجعية تظهر في وضع العرض وحده، والمستخدم الحقيقي يُخاطب بـ«طفلك».
+export const CHILD_NAMES: Record<Lang, { demo: string; generic: string }> = {
+  ar: { demo: "ليان", generic: "طفلك" },
+  en: { demo: "Layan", generic: "your baby" },
+};
+
+// ---------------------- شارة وضع العرض (?demo=1) ----------------------
+// لا تظهر بيانات ليان في أي شاشة بلا هذه الشارة — docs/ai-log/2026-11-27.md.
+export const DEMO_BADGE: Record<
+  Lang,
+  { text: string; exit: string; aria: string }
+> = {
+  ar: {
+    text: "نسخة عرض بعائلة تجريبية (ليان) — ابدئي بملف طفلك الحقيقي",
+    exit: "إغلاق العرض والعودة لملف طفلك",
+    aria: "وضع العرض التجريبي",
+  },
+  en: {
+    text: "Demo with the sample family (Layan) — start with your real baby's profile",
+    exit: "Close the demo and open your baby's profile",
+    aria: "Demo mode",
+  },
+};
+
+// ---------------------- لافتة تثبيت التطبيق (PWA) ----------------------
+// تعليمات النظام تُعرض بحسب جهاز الزائر؛ ولا متجر ولا حساب في الحالتين.
+export const INSTALL: Record<
+  Lang,
+  { title: string; android: string; ios: string; dismiss: string }
+> = {
+  ar: {
+    title:
+      "ثبّتي راحة على هاتفك — أيقونة مثل التطبيقات، بلا متجر وبلا حساب",
+    android: "أندرويد: قائمة كروم ⋮ ← تثبيت التطبيق",
+    ios: "آيفون: زر المشاركة ← إضافة إلى الشاشة الرئيسية",
+    dismiss: "إخفاء لافتة التثبيت",
+  },
+  en: {
+    title:
+      "Install RahaMoon on your phone — an app icon, no store and no account",
+    android: "Android: Chrome menu ⋮ → Install app",
+    ios: "iPhone: Share → Add to Home Screen",
+    dismiss: "Hide the install banner",
   },
 };

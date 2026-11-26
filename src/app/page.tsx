@@ -86,6 +86,7 @@ export default function Home() {
   const t = WELCOME[lang];
   const router = useRouter();
   const saveProfile = useProfile((state) => state.saveProfile);
+  const enterDemo = useProfile((state) => state.enterDemo);
   const seedDemoNights = useNights((state) => state.seedDemoNights);
   const [open, setOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -104,6 +105,8 @@ export default function Home() {
 
   const runDemo = () => {
     saveProfile(DEMO_PROFILE);
+    // جلسة عرض محفوظة: الشارة تصحب كل شاشة حتى إغلاق العرض.
+    enterDemo();
     seedDemoNights();
     router.push("/plan/today");
   };

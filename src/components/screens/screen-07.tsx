@@ -1,5 +1,7 @@
 "use client";
 
+import { DemoBadge } from "@/components/demo-badge";
+
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ArrowUp, BookOpen, CalendarClock, MessageCircle, Plus } from "lucide-react";
@@ -180,6 +182,8 @@ export function Screen07() {
     <main className="flex h-dvh justify-center bg-night-deep sm:items-center">
       <div className="flex h-dvh w-full max-w-[420px] flex-col bg-night sm:h-[min(860px,calc(100dvh-4rem))] sm:rounded-[2.5rem] sm:border sm:border-frame">
         <div className="no-scrollbar flex-1 overflow-y-auto px-6 pt-6 pb-5 sm:px-7">
+          <DemoBadge />
+
           <header>
             <div className="flex items-center gap-2.5"><span aria-hidden="true" className="raha-moon shrink-0" style={{ width: 17, height: 17 }} /><span className="text-sm text-nlo">{lang === "ar" ? BRAND.arabic : BRAND.latin}</span></div>
             <h1 className="mt-5 text-2xl leading-snug font-medium text-nhi">{t.headerTitle}</h1>
