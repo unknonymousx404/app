@@ -14,8 +14,9 @@ export const WAITLIST_STORAGE_KEY = "raha.waitlist";
  * ما دامت فارغة، يُحفظ البريد محلياً فقط ويظهر تنويه صادق بذلك.
  */
 export const WAITLIST_FORM = {
-  endpoint: "",
-  entry: "",
+  endpoint:
+    "https://docs.google.com/forms/d/e/1FAIpQLSdCnCO3QH9hNk0HkwlAhyjEtoKzcmmWLtfKXKF0bqeTHPkgvA/formResponse",
+  entry: "entry.817108565",
   viewUrl: "",
 } as const;
 
