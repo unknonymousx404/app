@@ -62,7 +62,9 @@ export const useProfile = create<ProfileState>()(
     (set) => ({
       ...EMPTY_ANSWERS,
       demo: false,
-      saveProfile: (profile) => set(profile),
+      // أي حفظ لملف حقيقي يُنهي جلسة العرض: بقاء شارة العرض فوق ملف حقيقي
+      // كذبٌ على الأم، وخروجها بعدها يمسح ملفها (رقعة 11.1).
+      saveProfile: (profile) => set({ ...profile, demo: false }),
       enterDemo: () => set({ demo: true }),
       exitDemo: () => set({ ...EMPTY_ANSWERS, demo: false }),
       addChatSummary: (summary) =>

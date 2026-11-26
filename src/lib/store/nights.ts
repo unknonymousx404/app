@@ -95,8 +95,14 @@ export const useNights = create<NightsState>()(
         set((state) => ({
           nights: state.nights.filter((night) => night.date !== date),
         })),
+      // حزام أمان (رقعة 11.1): لا استبدال ليالٍ حقيقية غير موسومة demoSeeded.
+      // وإلا محا عرضٌ عارضٌ سجلَّ أمٍّ حقيقية بضغطة واحدة.
       seedDemoNights: () =>
-        set({ nights: sortNights(demoNights()), demoSeeded: true }),
+        set((state) =>
+          state.nights.length > 0 && !state.demoSeeded
+            ? state
+            : { nights: sortNights(demoNights()), demoSeeded: true },
+        ),
       clearNights: () => set({ nights: [], demoSeeded: false }),
       clearDemoNights: () =>
         set((state) =>

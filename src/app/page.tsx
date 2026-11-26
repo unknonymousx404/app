@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { BRAND } from "@/lib/brand";
 import { WELCOME, type Lang } from "@/lib/i18n";
 import { setLang, useLang } from "@/lib/lang";
-import { DEMO_PROFILE, useProfile } from "@/lib/store/profile";
+import { hasDemoParam } from "@/lib/demo";
+import {
+  DEMO_PROFILE,
+  isProfileComplete,
+  useProfile,
+} from "@/lib/store/profile";
 import { useNights } from "@/lib/store/nights";
 
 // بوابة التركيب: الخادم يعرض الهيكل، والعميل يعرض الحالة المحفوظة فوراً.
@@ -86,6 +91,8 @@ export default function Home() {
   const t = WELCOME[lang];
   const router = useRouter();
   const saveProfile = useProfile((state) => state.saveProfile);
+  const demoSession = useProfile((state) => state.demo);
+  const profileComplete = useProfile((state) => isProfileComplete(state));
   const enterDemo = useProfile((state) => state.enterDemo);
   const seedDemoNights = useNights((state) => state.seedDemoNights);
   const [open, setOpen] = useState(false);
@@ -99,11 +106,13 @@ export default function Home() {
     getHydrated,
     getHydratedOnServer,
   );
-  const demo =
-    hydrated &&
-    new URLSearchParams(window.location.search).get("demo") === "1";
+  // ملف حقيقي مكتمل يقفل ?demo=1 هنا أيضاً: لا زر عرض في الرئيسية إطلاقاً
+  // ولا أي تغيير حالة (رقعة 11.1).
+  const realProfile = profileComplete && !demoSession;
+  const demo = hydrated && !realProfile && hasDemoParam();
 
   const runDemo = () => {
+    if (realProfile) return;
     saveProfile(DEMO_PROFILE);
     // جلسة عرض محفوظة: الشارة تصحب كل شاشة حتى إغلاق العرض.
     enterDemo();

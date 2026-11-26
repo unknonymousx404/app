@@ -39,11 +39,19 @@ export function hasDemoParam(): boolean {
   );
 }
 
-/** هل نعرض بيانات العائلة التجريبية الآن؟ */
+/**
+ * هل نعرض بيانات العائلة التجريبية الآن؟
+ * ملف حقيقي مكتمل يقفل العرض كلَّه: ?demo=1 لا يُظهر شارة ولا يغيّر حالة
+ * (رقعة 11.1). العرض يبقى متاحاً فقط حين لا يوجد ملف طفل مكتمل.
+ */
 export function useDemoMode(): boolean {
   const hydrated = useHydrated();
   const stored = useProfile((state) => state.demo);
-  return hydrated && (stored || hasDemoParam());
+  const complete = useProfile((state) => isProfileComplete(state));
+
+  if (!hydrated) return false;
+  if (complete && !stored) return false;
+  return stored || hasDemoParam();
 }
 
 export type ProfileGateStatus = "loading" | "open" | "closed";
@@ -58,7 +66,8 @@ export function useProfileGate(): ProfileGateStatus {
   const demo = useProfile((state) => state.demo);
   const complete = useProfile((state) => isProfileComplete(state));
   const enterDemo = useProfile((state) => state.enterDemo);
-  const fromUrl = hydrated && hasDemoParam();
+  // ملف حقيقي مكتمل لا يُلمس بـ?demo=1: لا جلسة عرض ولا شارة ولا تغيير حالة.
+  const fromUrl = hydrated && hasDemoParam() && !(complete && !demo);
 
   // الوصول بـ?demo=1 يثبّت جلسة العرض، فتظل الشارة والحارس مع التنقل.
   useEffect(() => {
