@@ -8,12 +8,19 @@ import { ArrowUp, BookOpen, CalendarClock, MessageCircle, Plus } from "lucide-re
 import { TabBar } from "@/components/nav/tabbar";
 import { Button } from "@/components/ui/button";
 import { ageParts, localIsoDate } from "@/lib/age";
+import { ASK_DAILY_LIMIT, consumeAskQuestion, useAskUsage } from "@/lib/ask-usage";
 import { BRAND } from "@/lib/brand";
-import { buildBaseAnswer } from "@/lib/engine/answers";
+import { buildBaseAnswer, type BaseAnswer } from "@/lib/engine/answers";
+import {
+  buildStaticAskAnswer,
+  buildUnderFourAnswer,
+  detectQuestionLang,
+} from "@/lib/engine/ask-content";
 import { formatClock, parseClock, ageRulesForMonths } from "@/lib/engine/age-rules";
 import type { Adjustment } from "@/lib/engine/adjuster";
 import { applyAdjustments } from "@/lib/engine/adjuster";
 import { buildFirstPlan } from "@/lib/engine/first-plan";
+import { hasRedFlag } from "@/lib/engine/safety";
 import { ASK, formatAge } from "@/lib/i18n";
 import { useLang } from "@/lib/lang";
 import { useChat, type ChatMessage } from "@/lib/store/chat";
@@ -75,6 +82,7 @@ export function Screen07() {
   const [revealed, setRevealed] = useState<Record<string, string>>({});
   const [adjustmentDone, setAdjustmentDone] = useState<string[]>([]);
   const [tomorrowDone, setTomorrowDone] = useState<string[]>([]);
+  const usedQuestions = useAskUsage();
   const idleTimer = useRef<number | null>(null);
 
   const profile = useMemo(() => (isProfileComplete(profileState) ? profileState : DEMO_PROFILE), [profileState]);
@@ -92,9 +100,18 @@ export function Screen07() {
   const plan = useMemo(() => {
     if (storedPlan) return storedPlan;
     if (!today) return null;
-    const age = ageParts(profile.birthDate, today) ?? { months: 0, days: 0 };
-    return buildFirstPlan(profile, ageRulesForMonths(age.months), today);
+    const parts = ageParts(profile.birthDate, today) ?? { months: 0, days: 0 };
+    return buildFirstPlan(profile, ageRulesForMonths(parts.months), today);
   }, [profile, storedPlan, today]);
+
+  const age = useMemo(
+    () =>
+      (today ? ageParts(profile.birthDate, today) : null) ?? {
+        months: 0,
+        days: 0,
+      },
+    [profile.birthDate, today],
+  );
 
   useEffect(() => {
     const root = document.documentElement;
@@ -126,26 +143,159 @@ export function Screen07() {
     };
   }, [messages, summarize]);
 
-  const submitQuestion = (event: FormEvent) => {
+  const submitQuestion = async (event: FormEvent) => {
     event.preventDefault();
     const value = question.trim();
     if (!value || typing || !plan) return;
-    const now = new Date().toISOString();
-    const motherId = `mother-${Date.now()}`;
-    addMessage({ id: motherId, role: "mother", text: value, createdAt: now });
+
+    addMessage({
+      id: `mother-${Date.now()}`,
+      role: "mother",
+      text: value,
+      createdAt: new Date().toISOString(),
+    });
     setQuestion("");
     setTyping(true);
-    const answer = buildBaseAnswer({ lang, question: value, profile, plan, adjustmentsCount: profileState.adjustments?.length ?? 0, lastSummary: profileState.chatSummaries?.at(-1) });
-    const answerId = `raha-${Date.now()}`;
-    window.setTimeout(() => {
-      addMessage({ id: answerId, role: "raha", text: answer.text, createdAt: new Date().toISOString(), template: answer.template, lessonId: answer.lessonId });
+
+    const questionLang = detectQuestionLang(value, lang);
+    const safetyFallback = hasRedFlag(value);
+    const underFour = age.months < 4;
+
+    let staticAnswer: BaseAnswer;
+    try {
+      staticAnswer = buildBaseAnswer({
+        lang,
+        question: value,
+        profile,
+        plan,
+        adjustmentsCount: profileState.adjustments?.length ?? 0,
+        lastSummary: profileState.chatSummaries?.at(-1),
+      });
+    } catch {
+      staticAnswer = {
+        text: buildStaticAskAnswer(
+          questionLang,
+          age.months,
+          profile.worstProblem,
+          {
+            routineStart: plan.routineStart,
+            lastFeed: plan.lastFeed,
+            bedtime: plan.bedtime,
+          },
+        ),
+        template: "general",
+      };
+    }
+
+    const localFallback = safetyFallback
+      ? {
+          text: "",
+          template: "safety" as const,
+          lessonId: undefined,
+          hidePlanActions: false,
+        }
+      : underFour
+        ? {
+            text: buildUnderFourAnswer(questionLang, age.months),
+            template: "general" as const,
+            lessonId: undefined,
+            hidePlanActions: true,
+          }
+        : {
+            text: staticAnswer.text,
+            template: staticAnswer.template,
+            lessonId: staticAnswer.lessonId,
+            hidePlanActions: false,
+          };
+
+    const pushAnswer = (
+      text: string,
+      template: string,
+      lessonId?: string,
+      hidePlanActions = false,
+    ) => {
+      const answerId = `raha-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      addMessage({
+        id: answerId,
+        role: "raha",
+        text,
+        createdAt: new Date().toISOString(),
+        template,
+        lessonId,
+        hidePlanActions,
+      });
+      setRevealed((current) => ({ ...current, [answerId]: text }));
+    };
+
+    const usage = consumeAskQuestion();
+    if (!usage.allowed) {
+      window.setTimeout(() => {
+        pushAnswer(t.limitReply, "general", undefined, true);
+        setTyping(false);
+      }, 350);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12_000);
+
+    try {
+      const response = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: value,
+          lang,
+          ageMonths: age.months,
+          worstProblem: profile.worstProblem,
+          plan: {
+            routineStart: plan.routineStart,
+            lastFeed: plan.lastFeed,
+            bedtime: plan.bedtime,
+          },
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) throw new Error("ask request failed");
+
+      const data = (await response.json()) as {
+        answer?: unknown;
+        kind?: unknown;
+        fallback?: unknown;
+      };
+      const answer = typeof data.answer === "string" ? data.answer.trim() : "";
+      const kind = typeof data.kind === "string" ? data.kind : "";
+
+      if (!answer || data.fallback === true || kind === "fallback") {
+        throw new Error("ask fallback");
+      }
+
+      if (safetyFallback || kind === "safety") {
+        pushAnswer(answer, "safety");
+      } else if (underFour) {
+        // لا نثق بأي إجابة غير موسومة من الخادم في هذا العمر.
+        if (kind !== "under-four") throw new Error("under four guard");
+        pushAnswer(answer, "general", undefined, true);
+      } else {
+        pushAnswer(answer, staticAnswer.template, staticAnswer.lessonId);
+      }
+    } catch {
+      // رجوع صامت: لا رسالة خطأ أمام الأم، فقط الإجابة الثابتة المكتوبة سلفاً.
+      pushAnswer(
+        localFallback.text,
+        localFallback.template,
+        localFallback.lessonId,
+        localFallback.hidePlanActions,
+      );
+    } finally {
+      window.clearTimeout(timeout);
       setTyping(false);
-      setRevealed((current) => ({ ...current, [answerId]: answer.text }));
-    }, 650);
+    }
   };
 
   const addTonightAdjustment = (message: ChatMessage) => {
-    if (adjustmentDone.includes(message.id) || !plan) return;
+    if (message.hidePlanActions || adjustmentDone.includes(message.id) || !plan) return;
     const from = plan.bedtime;
     const to = formatClock(parseClock(from) - 5);
     const adjustment: Adjustment = {
@@ -168,15 +318,6 @@ export function Screen07() {
     scheduleTomorrow(mother?.text ?? t.headerTitle);
     setTomorrowDone((current) => [...current, message.id]);
   };
-
-  const age = useMemo(
-    () =>
-      (today ? ageParts(profile.birthDate, today) : null) ?? {
-        months: 0,
-        days: 0,
-      },
-    [profile.birthDate, today],
-  );
 
   return (
     <main className="flex h-dvh justify-center bg-night-deep sm:items-center">
@@ -205,7 +346,7 @@ export function Screen07() {
                     </section>
                   ) : (
                     <div className="mt-3 space-y-2 rounded-2xl border border-gold/20 bg-nsoft/50 p-3">
-                      {message.lessonId ? (
+                      {!message.hidePlanActions && message.lessonId ? (
                         <Link
                           href={`/library?lesson=${encodeURIComponent(message.lessonId)}`}
                           className="flex min-h-11 w-full items-center justify-start gap-2 rounded-xl border border-gold/30 bg-gold/10 px-3 text-xs font-normal text-gold hover:bg-gold/20"
@@ -214,7 +355,9 @@ export function Screen07() {
                           {t.lessonLink}
                         </Link>
                       ) : null}
-                      <Button type="button" onClick={() => addTonightAdjustment(message)} disabled={adjustmentDone.includes(message.id)} className="min-h-11 w-full justify-start rounded-xl border border-gold/30 bg-gold/10 px-3 text-start text-xs font-normal text-gold hover:bg-gold/20 disabled:opacity-70"><Plus aria-hidden="true" className="h-4 w-4" />{adjustmentDone.includes(message.id) ? t.adjustmentAdded : t.addAdjustment}</Button>
+                      {!message.hidePlanActions ? (
+                        <Button type="button" onClick={() => addTonightAdjustment(message)} disabled={adjustmentDone.includes(message.id)} className="min-h-11 w-full justify-start rounded-xl border border-gold/30 bg-gold/10 px-3 text-start text-xs font-normal text-gold hover:bg-gold/20 disabled:opacity-70"><Plus aria-hidden="true" className="h-4 w-4" />{adjustmentDone.includes(message.id) ? t.adjustmentAdded : t.addAdjustment}</Button>
+                      ) : null}
                       <Button type="button" onClick={() => askTomorrow(message)} disabled={tomorrowDone.includes(message.id)} className="min-h-11 w-full justify-start rounded-xl border border-nline bg-nchip/40 px-3 text-start text-xs font-normal text-nmd hover:bg-nchip hover:text-nhi disabled:opacity-70"><CalendarClock aria-hidden="true" className="h-4 w-4" />{tomorrowDone.includes(message.id) ? t.tomorrowAdded : t.askTomorrow}</Button>
                     </div>
                   )
@@ -231,7 +374,7 @@ export function Screen07() {
             <textarea id="ask-question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder={t.placeholder} rows={1} className="max-h-24 min-h-11 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm text-nhi outline-none placeholder:text-ndim" />
             <Button type="submit" aria-label={t.send} disabled={!question.trim() || typing} className="size-11 shrink-0 rounded-xl bg-gold p-0 text-goldink hover:bg-gold/90 disabled:bg-nchip disabled:text-ndim"><ArrowUp aria-hidden="true" className="h-5 w-5" /></Button>
           </div>
-          <p className="mt-2 flex items-center justify-center gap-1 text-[10px] text-ndim"><MessageCircle aria-hidden="true" className="h-3 w-3" />{t.saved}</p>
+          <p className="mt-2 flex items-center justify-center gap-1 text-[10px] text-ndim"><MessageCircle aria-hidden="true" className="h-3 w-3" />{usedQuestions >= ASK_DAILY_LIMIT ? t.limitNote : t.saved}</p>
         </form>
         <TabBar active="ask" />
       </div>

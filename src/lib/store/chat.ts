@@ -11,6 +11,8 @@ export interface ChatMessage {
   template?: string;
   /** الدرس الذي يوسّد به الرد — قابل للفتح مباشرة في المكتبة. */
   lessonId?: string;
+  /** رد توعوي (أقل من 4 أشهر أو سقف الأسئلة): لا نعرض تعديل خطة. */
+  hidePlanActions?: boolean;
 }
 
 interface ChatState {

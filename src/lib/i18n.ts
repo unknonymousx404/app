@@ -763,9 +763,11 @@ const askAr = {
   askTomorrow: "وغداً أسأليني ماذا حدث",
   tomorrowAdded: "تم — سأعيد السؤال غداً صباحاً.",
   safetyTitle: "الأفضل أن يطمئن عليكِ طبيب",
-  safetyBody: "هذا الوصف يحتاج تقييماً طبياً مباشراً. تواصلي مع طبيب الأطفال أو خدمة الطوارئ المحلية الآن، من فضلك.",
+  safetyBody: "هذا الوصف يحتاج تقييماً طبياً مباشراً. استشيري طبيب الأطفال الآن، ولا تنتظري. إن كانت الأعراض شديدة أو لاحظتِ صعوبة في التنفس، فاتصلي بخدمة الطوارئ المحلية فوراً.",
   empty: "اكتبي سؤالك، وسأربطه بملف طفلك وخطة الليلة.",
   saved: "المحادثة محفوظة على جهازك.",
+  limitReply: "انتهت أسئلة اليوم — تكملين غدًا.",
+  limitNote: "وصلتِ إلى 15 سؤالاً اليوم — تكملين غدًا.",
   noPlan: "أجهز خطة طفلك المحفوظة أولاً، ثم أجيبك.",
 } as const;
 
@@ -788,9 +790,11 @@ export const ASK: Record<Lang, Record<AskKeys, string>> = {
     askTomorrow: "Ask me tomorrow what happened",
     tomorrowAdded: "Done — I'll ask again tomorrow morning.",
     safetyTitle: "A doctor should check this",
-    safetyBody: "This needs direct medical assessment. Please contact your baby's doctor or your local emergency service now.",
+    safetyBody: "This needs direct medical assessment. Please see your pediatrician now — don't wait. If symptoms are severe or you notice difficulty breathing, contact your local emergency service immediately.",
     empty: "Ask your question and I'll connect it to your baby's profile and tonight's plan.",
     saved: "This conversation is saved on your device.",
+    limitReply: "That's all for today — we'll continue tomorrow.",
+    limitNote: "You've reached 15 questions today — we'll continue tomorrow.",
     noPlan: "I am loading your baby's saved plan first, then I'll answer.",
   },
 };
