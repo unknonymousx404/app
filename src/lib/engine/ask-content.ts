@@ -179,13 +179,27 @@ const NEGATION = new RegExp(
  */
 const CONTRACTION_NEGATION = /\p{L}n['’]t\b/iu;
 
-/** تحذير داخل الجملة نفسها بعد المطابقة — البند 2. */
+/**
+ * تحذير داخل الجملة نفسها بعد المطابقة — البند 2، ورقعة 12.5 البند 3:
+ * أُضيف «ممنوع» و«محظور» و«not recommended» و«غير موصى به».
+ */
 const DANGER_WARNING =
-  /(?:خطر|خطير|غير\s+آمن|ليست\s+آمنة|ليس\s+آمن|dangerous|unsafe|risky|not\s+safe)/iu;
+  /(?:خطر|خطير|غير\s+آمن|ليست\s+آمنة|ليس\s+آمن|ممنوع|محظور|غير\s+موصى\s+به|dangerous|unsafe|risky|not\s+safe|not\s+recommended)/iu;
 
-/** تحذير منفي («ليس خطرًا»، «not dangerous») = تبييض خطر لا إعفاء. */
-const NEGATED_WARNING = /(?:ليس(?:ت)?\s+خطي?ر\p{L}*|not\s+dangerous)/iu;
-const NEGATED_WARNING_ALL = /(?:ليس(?:ت)?\s+خطي?ر\p{L}*|not\s+dangerous)/giu;
+/** تشكيل عربي اختياري — رقعة 12.5 البند 1 («ليس بخطرٍ»). */
+const TASHKEEL = "[\\u064B-\\u0652\\u0670]*";
+
+/**
+ * تحذير منفي («ليس خطرًا»، «ليست بخطيرة»، «غير خطر»، «not dangerous»،
+ * «isn't dangerous») = تبييض خطر لا إعفاء — رقعة 12.5 البند 1: حرف الباء
+ * الاختياري بين ليس/ليست والجذر، وصيغة «غير خطر»، واختصار النفي الإنجليزي.
+ */
+const NEGATED_WARNING_SOURCE =
+  `(?:ليس(?:ت)?\\s*(?:بـ?\\s*)?خط${TASHKEEL}ي?${TASHKEEL}ر${TASHKEEL}\\p{L}*` +
+  `|غير\\s+خط${TASHKEEL}ي?${TASHKEEL}ر${TASHKEEL}\\p{L}*` +
+  `|(?:not|n['’]t)\\s+dangerous)`;
+const NEGATED_WARNING = new RegExp(NEGATED_WARNING_SOURCE, "iu");
+const NEGATED_WARNING_ALL = new RegExp(NEGATED_WARNING_SOURCE, "giu");
 
 type WarningVerdict = "none" | "warning" | "masked";
 
@@ -212,9 +226,16 @@ function isNegatedBefore(
   clauseStart: number,
   matchStart: number,
 ): boolean {
-  const before = text.slice(clauseStart, matchStart);
+  // رقعة 12.5 البند 2: عبارات التحذير المنفي («not dangerous»، «ليس بخطر»)
+  // تُنزع قبل فحص النفي، لأنها تبييض خطر لا نفيًا عاديًا.
+  const before = text
+    .slice(clauseStart, matchStart)
+    .replace(NEGATED_WARNING_ALL, " ");
   return NEGATION.test(before) || CONTRACTION_NEGATION.test(before);
 }
+
+/** فع ل إزالة خطر بعد مطابقة الوسادة — يعفي أنماط الوسائد وحدها (البند 6). */
+const REMOVAL_ACTION = /(?:أزيلي|أخرجي|انزعي|remove)/iu;
 
 /** إعفاء وقت البطن أثناء الاستيقاظ — البند 6. الوسائد لا تُعفى أبداً. */
 const AWAKE_TUMMY_TIME =
@@ -223,6 +244,8 @@ const AWAKE_TUMMY_TIME =
 interface MatchOptions {
   /** جملة وقت البطن أثناء الاستيقاظ تُعفى من أنماط الموضع وحدها. */
   exemptAwakeTummy?: boolean;
+  /** فعل إزالة بعد مطابقة الوسادة يعفي أنماط الوسائد وحدها — البند 6. */
+  exemptRemovalAfterMatch?: boolean;
 }
 
 /** نبحث عن أول مطابقة غير منفية — المطابقة المنفية تُتجاهل ونكمل. */
@@ -239,8 +262,11 @@ function hasPositiveMatch(
       const matchEnd = match.index + match[0].length;
       const [clauseStart, clauseEnd] = clauseBounds(text, match.index, matchEnd);
       const clause = text.slice(clauseStart, clauseEnd);
+      const afterMatch = clause.slice(matchEnd - clauseStart);
       const exempt =
-        options?.exemptAwakeTummy === true && AWAKE_TUMMY_TIME.test(clause);
+        (options?.exemptAwakeTummy === true && AWAKE_TUMMY_TIME.test(clause)) ||
+        (options?.exemptRemovalAfterMatch === true &&
+          REMOVAL_ACTION.test(afterMatch));
 
       if (
         !exempt &&
@@ -257,19 +283,42 @@ function hasPositiveMatch(
 }
 
 /**
- * تأخير الاستجابة للبكاء — رقعة 12.4 البند 7 (من الإنتاج): نمط ضيق لا يرفض
- * إلا إذا اجتمع (انتظر/انتظري + عدد دقائق) مع (بكاء/بكى/تبكي/يبكي/الاستجابة)
- * في الجملة نفسها. «انتظري عشرين دقيقة بعد الرضعة» نصيحة سليمة وتمرّ.
+ * تأخير الاستجابة للبكاء — رقعة 12.4 البند 7 ثم رقعة 12.5 البند 7:
+ * الفحص على مستوى الجملة الكاملة بحدود [.؛!؟\n] وحدها (بلا الفاصلة والفاصلة
+ * المنقوطة والنقطتين والشرطة)، مع صيغة تاء (تنتظري) وصيغ دقائق الثلاث،
+ * وأنماط إنجليزية (wait|leave + minutes) وكلمات البكاء والاستجابة.
+ * «انتظري عشرين دقيقة بعد الرضعة» نصيحة سليمة وتمرّ (بلا بكاء).
  */
-const WAIT_MINUTES = /انتظر\S*\s+(?:\S+\s+){0,2}?(?:دقائق|دقيقة|دقيق)/;
-const CRY_OR_RESPONSE = /(?:بكاء|بكى|تبكي|يبكي|بكيت|الاستجابة|استجابة)/;
+const SENTENCE_BREAK = /[.؛!؟\n]/;
+const WAIT_MINUTES_AR =
+  /(?:انتظر|تنتظر)\S*\s+(?:\S+\s+){0,2}?(?:دقائق|دقيق\p{L}*)/u;
+const WAIT_MINUTES_EN =
+  /\b(?:wait|waits|waited|waiting)\s+(?:\p{L}+\s+){0,2}?minutes?\b/iu;
+const LEAVE_MINUTES_EN =
+  /\bleave\s+(?:him|them|her)\s+(?:for\s+)?(?:\p{L}+\s+){0,2}?minutes?\b/iu;
+const CRY_OR_RESPONSE =
+  /(?:بكاء|بكى|تبكي|يبكي|بكيت|الاستجابة|استجابة|\bcries?\b|\bcrying\b|\brespond\b|\bresponse\b)/iu;
+const CRY_WAIT_PATTERNS = [
+  WAIT_MINUTES_AR,
+  WAIT_MINUTES_EN,
+  LEAVE_MINUTES_EN,
+] as const;
 
 function hasDelayedCryResponse(text: string): boolean {
-  return text.split(CLAUSE_BREAK).some((clause) => {
-    if (!CRY_OR_RESPONSE.test(clause)) return false;
-    const wait = WAIT_MINUTES.exec(clause);
-    if (!wait) return false;
-    return !isNegatedBefore(clause, 0, wait.index);
+  return text.split(SENTENCE_BREAK).some((sentence) => {
+    if (!CRY_OR_RESPONSE.test(sentence)) return false;
+    return CRY_WAIT_PATTERNS.some((pattern) => {
+      const flags = pattern.flags.includes("g")
+        ? pattern.flags
+        : `${pattern.flags}g`;
+      const scan = new RegExp(pattern.source, flags);
+      let match = scan.exec(sentence);
+      while (match) {
+        if (!isNegatedBefore(sentence, 0, match.index)) return true;
+        match = scan.exec(sentence);
+      }
+      return false;
+    });
   });
 }
 
@@ -287,6 +336,9 @@ export function containsCryTraining(text: string): boolean {
 export const UNSAFE_SLEEP_PATTERNS = [
   /(?:ضعيه|ضعيها|ضعي|ضعه|ينام|لينام|نوم|نومه|نومها|ينامه|ينامها|تنامه|تنامها|نوّ?\s*مي(?:ه|ها)|نامي(?:ه|ها))\s+(?:الطفل|طفلك|الرضيع|هو|هي)?\s*(?:على\s+)?(?:جانبه|جنبه|جانبها|بطنه|بطنها|البطن|الجانب)/,
   /(?:place|put|lay|sleep)\S*\s+(?:them|him|her|(?:your|the|my)\s+baby)?\s*(?:on\s+)?(?:their\s+|his\s+|her\s+)?(?:side|stomach|tummy)/i,
+  // رقعة 12.5 البند 4: الصيغة الاسمية (stomach|side|tummy) + sleep/sleeping.
+  // «back» مستثناة قصداً: «Back sleeping is best» نصيحة آمنة تمرّ دومًا.
+  /\b(?:stomach|side|tummy)\s+sleep(?:ing|s)?\b/i,
   /(?:ينام|تنام|نوم|نائمة|نومه|نومها|ينامه|ينامها|تنامه|تنامها)\s+(?:الطفل|طفلك|الرضيع|هو|هي)?\s*(?:على\s+)?(?:جانب\w*|بطن\w*|الجانب|البطن)/,
 ] as const;
 
@@ -296,7 +348,10 @@ const UNSAFE_PILLOW_PATTERNS = [
   /\b(?:with|use|add)\s+(?:a\s+)?pillow/i,
   /(?:ضعي|ضع|أعطيه|أعطيها)\s+(?:وسادة|وسائد|مخدة)/,
   /(?:وسادة|وسائد|مخدة)\s+تحت\s+(?:رأسه|رأسها|راسه)/,
-  /(?:place|put|use|add)\s+(?:a\s+)?(?:small\s+)?pillow/i,
+  // رقعة 12.5 البند 5: أي لواحق بعد الفعل تصطاد «Putting a pillow».
+  /(?:place|put|use|add)\S*\s+(?:a\s+)?(?:small\s+)?pillow/i,
+  // رقعة 12.5 البند 5: (rest|sleep|nap|lie) + (on|with) + pillow.
+  /(?:rest|sleep|nap|lie)\S*\s+(?:on|with)\s+(?:\p{L}+\s+){0,3}pillow/iu,
 ] as const;
 
 /**
@@ -305,7 +360,13 @@ const UNSAFE_PILLOW_PATTERNS = [
  */
 export function containsUnsafeSleepAdvice(text: string): boolean {
   const normalized = normalizeApostrophes(text);
-  if (hasPositiveMatch(normalized, UNSAFE_PILLOW_PATTERNS)) return true;
+  if (
+    hasPositiveMatch(normalized, UNSAFE_PILLOW_PATTERNS, {
+      exemptRemovalAfterMatch: true,
+    })
+  ) {
+    return true;
+  }
   return hasPositiveMatch(normalized, UNSAFE_SLEEP_PATTERNS, {
     exemptAwakeTummy: true,
   });

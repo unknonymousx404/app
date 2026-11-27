@@ -1,7 +1,8 @@
 /*
-  اختبار حارس النوم الآمن — رقعة 12.4.
-  40 حالة مسمّاة (1–18 من رقعتي 12.1 و12.3، و19–40 من رقعة 12.4)
-  + 4 نصوص سلامة. تمرّ = ليست مرفوضة. تُرفض = نوم غير آمن أو تدريب بكاء.
+  اختبار حارس النوم الآمن — رقعة 12.5.
+  60 حالة مسمّاة (1–18 من رقعتي 12.1 و12.3، و19–40 من رقعة 12.4،
+  و41–60 من رقعة 12.5) + 4 نصوص سلامة.
+  تمرّ = ليست مرفوضة. تُرفض = نوم غير آمن أو تدريب بكاء.
   كل واحدة تطبع PASS/FAIL.
 
   التشغيل: node --experimental-strip-types verify/safety-guard.test.ts
@@ -350,6 +351,166 @@ const cases: Case[] = [
         false,
       ),
   },
+  {
+    name: "41. تُرفض — التحذير المنفي بحرف الباء: «ليس بخطر» (البند 1)",
+    check: () =>
+      assert.equal(
+        isRejected("وضعه على بطنه ليس بخطر كما يقولون."),
+        true,
+      ),
+  },
+  {
+    name: "42. تُرفض — التبييض قبل المطابقة: «not dangerous to put» (البند 2)",
+    check: () =>
+      assert.equal(
+        isRejected("It's not dangerous to put a pillow under his head."),
+        true,
+      ),
+  },
+  {
+    name: "43. تمرّ — «not safe» نفي عادي لا تبييض (البند 2)",
+    check: () =>
+      assert.equal(
+        isRejected("It's not safe to put him on his side."),
+        false,
+      ),
+  },
+  {
+    name: "44. تمرّ — «ممنوع» تحذير بعد المطابقة (البند 3)",
+    check: () =>
+      assert.equal(
+        isRejected("نوم الطفل على البطن ممنوع في هذا العمر."),
+        false,
+      ),
+  },
+  {
+    name: "45. تمرّ — «not recommended» تحذير بعد المطابقة (البند 3)",
+    check: () =>
+      assert.equal(
+        isRejected("Stomach sleeping is not recommended at this age."),
+        false,
+      ),
+  },
+  {
+    name: "46. تُرفض — الصيغة الاسمية: «stomach sleeping» (البند 4)",
+    check: () =>
+      assert.equal(
+        isRejected("You could try stomach sleeping for longer naps."),
+        true,
+      ),
+  },
+  {
+    name: "47. تمرّ — «Stomach sleeping is dangerous» تحذير (البند 4)",
+    check: () =>
+      assert.equal(
+        isRejected("Stomach sleeping is dangerous for babies under one."),
+        false,
+      ),
+  },
+  {
+    name: "48. تمرّ — «back» مستثناة من النمط الاسمي (البند 4)",
+    check: () =>
+      assert.equal(
+        isRejected("Back sleeping is best for babies under one."),
+        false,
+      ),
+  },
+  {
+    name: "49. تُرفض — الوسادة مع rest on (البند 5)",
+    check: () =>
+      assert.equal(
+        isRejected("Let him rest on a soft pillow during the night."),
+        true,
+      ),
+  },
+  {
+    name: "50. تمرّ — «Putting a pillow … is not safe» (البند 5)",
+    check: () =>
+      assert.equal(
+        isRejected("Putting a pillow in the cot is not safe before age one."),
+        false,
+      ),
+  },
+  {
+    name: "51. تمرّ — Never let him rest on a pillow (البند 5)",
+    check: () =>
+      assert.equal(
+        isRejected("Never let him rest on a pillow — keep the cot bare."),
+        false,
+      ),
+  },
+  {
+    name: "52. تمرّ — فعل الإزالة يعفي مطابقة الوسادة (البند 6)",
+    check: () =>
+      assert.equal(
+        isRejected("إن كان في سريره وسادة تحت رأسه فأزيليها الآن."),
+        false,
+      ),
+  },
+  {
+    name: "53. تُرفض — وسادة تحت رأسه بلا فعل إزالة (البند 6)",
+    check: () =>
+      assert.equal(
+        isRejected("ستجدين وسادة تحت رأسه مريحة له."),
+        true,
+      ),
+  },
+  {
+    name: "54. تُرفض — انتظار بالإنجليزية عبر الفاصلة (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("If he cries, wait ten minutes before you respond."),
+        true,
+      ),
+  },
+  {
+    name: "55. تُرفض — Leave him for ten minutes (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("Leave him for ten minutes if he cries."),
+        true,
+      ),
+  },
+  {
+    name: "56. تمرّ — Don't wait … respond right away (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("Don't wait ten minutes when he cries — respond right away."),
+        false,
+      ),
+  },
+  {
+    name: "57. تمرّ — Wait twenty minutes بلا بكاء (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("Wait twenty minutes after the feed before you put him down."),
+        false,
+      ),
+  },
+  {
+    name: "58. تُرفض — «انتظري دقائق» مع البكاء (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("انتظري دقائق قليلة حين يبكي قبل أن تستجيبي."),
+        true,
+      ),
+  },
+  {
+    name: "59. تمرّ — «لا تنتظري عشر دقائق» نفي قبل الانتظار (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("لا تنتظري عشر دقائق إذا بكى — استجيبي فورًا."),
+        false,
+      ),
+  },
+  {
+    name: "60. تمرّ — «انتظري عشرين دقيقة» بلا بكاء (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("انتظري عشرين دقيقة بعد الرضعة قبل وضعه في السرير."),
+        false,
+      ),
+  },
 ];
 
 let failures = 0;
@@ -388,4 +549,4 @@ if (failures > 0) {
   process.exit(1);
 }
 
-console.log("\nكل الحالات الـ44 PASS (40 حالة مسمّاة + 4 نصوص سلامة).");
+console.log("\nكل الحالات الـ64 PASS (60 حالة مسمّاة + 4 نصوص سلامة).");
