@@ -8,6 +8,7 @@ import {
   containsInventedTime,
   containsUnsafeSleepAdvice,
   detectQuestionLang,
+  isAllowedRequestOrigin,
   type AskPlanContext,
 } from "@/lib/engine/ask-content";
 import { buildAskSystemPrompt } from "@/lib/engine/ask-prompt";
@@ -63,18 +64,16 @@ function cleanAnswer(value: string): string {
     .trim();
 }
 
-const ALLOWED_ORIGINS = [
-  "https://rahamoon.vercel.app",
-  "http://localhost:3000",
-  "http://localhost:3001",
-] as const;
-
 export async function POST(request: Request) {
   // لا استدعاء من خارج التطبيق. الترويسة قابلة للتزييف أصلًا؛
   // localhost هنا لتسهيل اختبار مسار AI بعد ضبط المفتاح.
-  const origin =
-    request.headers.get("origin") ?? request.headers.get("referer") ?? "";
-  if (!ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed))) {
+  // رقعة 12.4: مساواة تامة لـOrigin، وReferer بأصل + «/» أو نهاية وحدها.
+  if (
+    !isAllowedRequestOrigin(
+      request.headers.get("origin"),
+      request.headers.get("referer"),
+    )
+  ) {
     return new NextResponse(null, { status: 403 });
   }
 

@@ -116,7 +116,44 @@ const CRY_TRAINING_PATTERNS = [
   /ferber\s+method/i,
   /(?:اتركيها|اتركيه|دعيها|دعيه)\s+(?:تبكي|يبكي)/,
   /طريقة\s+فيربر/,
+  // «دعيه يبكي» بالإنجليزية — رقعة 12.4 البند 5.
+  /(?:let|leave)\s+(?:them|him|her)\s+(?:to\s+)?cry\b/i,
 ] as const;
+
+/**
+ * حدود الجملة — رقعة 12.4 البند 1: أُضيفت الفاصلة اللاتينية , والفاصلة
+ * المنقوطة ; والنقطتان : والشرطة الطويلة — والقصيرة – إلى الحدود السابقة
+ * [.؛،!؟\n]. «لا تقلقي — اتركيه يبكي» جملتان لا جملة واحدة.
+ */
+const CLAUSE_BREAK = /[.؛،,;:—–!?\n]/;
+
+/** تطبيع الفاصلة العليّة ’ و‘ إلى ' قبل كل الفحوص — البند 3. */
+function normalizeApostrophes(text: string): string {
+  return text.replace(/[’‘]/g, "'");
+}
+
+/** بداية الجملة ونهايتها حول مقطع مطابق. */
+function clauseBounds(
+  text: string,
+  start: number,
+  end: number,
+): [number, number] {
+  let clauseStart = 0;
+  for (let i = start - 1; i >= 0; i -= 1) {
+    if (CLAUSE_BREAK.test(text[i])) {
+      clauseStart = i + 1;
+      break;
+    }
+  }
+  let clauseEnd = text.length;
+  for (let i = end; i < text.length; i += 1) {
+    if (CLAUSE_BREAK.test(text[i])) {
+      clauseEnd = i;
+      break;
+    }
+  }
+  return [clauseStart, clauseEnd];
+}
 
 /**
  * النفي داخل الجملة: المطابقة منفية إذا ظهرت أداة نفي أو تحذير في نص
@@ -128,43 +165,119 @@ const CRY_TRAINING_PATTERNS = [
  * لأن أداة النفي في أول الجملة تغطّي ما بعدها حتى حدّ الجملة التالي.
  * الحارس خط دفاع أخير، والبرومبت يمنع هذه الصياغة أصلًا.
  */
-const CLAUSE_BREAK = /[.؛،!؟\n]/;
-
 const NEGATION = new RegExp(
   "(?:^|[^\\p{L}])(?:لا|ألا|ألّا|لن|ولا|بلا|بدون|دون|ليس|ليست|ممنوع|" +
     "تفادي|تجنّبي|تجنبي|امتنعي|ابتعدي|خطر|خطير|غير آمن|" +
-    "never|avoid|without|don't|doesn't|not|no|dangerous|unsafe|risky)(?![\\p{L}])",
+    "never|avoid|without|don't|doesn't|not|no|n't|dangerous|unsafe|risky)(?![\\p{L}])",
   "iu",
 );
 
-function isNegatedInClause(text: string, index: number): boolean {
-  let start = 0;
-  for (let i = index - 1; i >= 0; i--) {
-    if (CLAUSE_BREAK.test(text[i])) {
-      start = i + 1;
-      break;
-    }
+/**
+ * اختصارات النفي الإنجليزية — رقعة 12.4 البند 3: `n't` ملتصقة بالفعل
+ * («shouldn't») لا تمرّ من شرط الحدّ `[^\p{L}]` في NEGATION، فتُفحص وحدها
+ * بعد تطبيع الفاصلة العليّة، فتُغطى don't/shouldn't/can't/won't/mustn't.
+ */
+const CONTRACTION_NEGATION = /\p{L}n['’]t\b/iu;
+
+/** تحذير داخل الجملة نفسها بعد المطابقة — البند 2. */
+const DANGER_WARNING =
+  /(?:خطر|خطير|غير\s+آمن|ليست\s+آمنة|ليس\s+آمن|dangerous|unsafe|risky|not\s+safe)/iu;
+
+/** تحذير منفي («ليس خطرًا»، «not dangerous») = تبييض خطر لا إعفاء. */
+const NEGATED_WARNING = /(?:ليس(?:ت)?\s+خطي?ر\p{L}*|not\s+dangerous)/iu;
+const NEGATED_WARNING_ALL = /(?:ليس(?:ت)?\s+خطي?ر\p{L}*|not\s+dangerous)/giu;
+
+type WarningVerdict = "none" | "warning" | "masked";
+
+/**
+ * فحص ما بعد المطابقة في الجملة نفسها — رقعة 12.4 البند 2: تحذير بعد
+ * المطابقة («النوم على البطن خطر») يجعلها تحذيراً آمناً، إلا إذا كان التحذير
+ * نفسه منفياً («ليس خطراً»، «not dangerous») فترفض الجملة لأنه تبييض خطر.
+ */
+function warningAfterMatch(
+  text: string,
+  matchEnd: number,
+  clauseEnd: number,
+): WarningVerdict {
+  const after = text.slice(matchEnd, clauseEnd);
+  if (DANGER_WARNING.test(after.replace(NEGATED_WARNING_ALL, " "))) {
+    return "warning";
   }
-  return NEGATION.test(text.slice(start, index));
+  if (NEGATED_WARNING.test(after)) return "masked";
+  return "none";
+}
+
+function isNegatedBefore(
+  text: string,
+  clauseStart: number,
+  matchStart: number,
+): boolean {
+  const before = text.slice(clauseStart, matchStart);
+  return NEGATION.test(before) || CONTRACTION_NEGATION.test(before);
+}
+
+/** إعفاء وقت البطن أثناء الاستيقاظ — البند 6. الوسائد لا تُعفى أبداً. */
+const AWAKE_TUMMY_TIME =
+  /(?:tummy[\s-]*time|while\s+awake|وقت\s+البطن|أثناء\s+الاستيقاظ|وهو\s+مستيقظ)/iu;
+
+interface MatchOptions {
+  /** جملة وقت البطن أثناء الاستيقاظ تُعفى من أنماط الموضع وحدها. */
+  exemptAwakeTummy?: boolean;
 }
 
 /** نبحث عن أول مطابقة غير منفية — المطابقة المنفية تُتجاهل ونكمل. */
-function hasPositiveMatch(text: string, patterns: readonly RegExp[]): boolean {
+function hasPositiveMatch(
+  text: string,
+  patterns: readonly RegExp[],
+  options?: MatchOptions,
+): boolean {
   for (const pattern of patterns) {
     const flags = pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`;
     const scan = new RegExp(pattern.source, flags);
     let match = scan.exec(text);
     while (match) {
-      if (!isNegatedInClause(text, match.index)) return true;
+      const matchEnd = match.index + match[0].length;
+      const [clauseStart, clauseEnd] = clauseBounds(text, match.index, matchEnd);
+      const clause = text.slice(clauseStart, clauseEnd);
+      const exempt =
+        options?.exemptAwakeTummy === true && AWAKE_TUMMY_TIME.test(clause);
+
+      if (
+        !exempt &&
+        !isNegatedBefore(text, clauseStart, match.index) &&
+        warningAfterMatch(text, matchEnd, clauseEnd) !== "warning"
+      ) {
+        return true;
+      }
+
       match = scan.exec(text);
     }
   }
   return false;
 }
 
+/**
+ * تأخير الاستجابة للبكاء — رقعة 12.4 البند 7 (من الإنتاج): نمط ضيق لا يرفض
+ * إلا إذا اجتمع (انتظر/انتظري + عدد دقائق) مع (بكاء/بكى/تبكي/يبكي/الاستجابة)
+ * في الجملة نفسها. «انتظري عشرين دقيقة بعد الرضعة» نصيحة سليمة وتمرّ.
+ */
+const WAIT_MINUTES = /انتظر\S*\s+(?:\S+\s+){0,2}?(?:دقائق|دقيقة|دقيق)/;
+const CRY_OR_RESPONSE = /(?:بكاء|بكى|تبكي|يبكي|بكيت|الاستجابة|استجابة)/;
+
+function hasDelayedCryResponse(text: string): boolean {
+  return text.split(CLAUSE_BREAK).some((clause) => {
+    if (!CRY_OR_RESPONSE.test(clause)) return false;
+    const wait = WAIT_MINUTES.exec(clause);
+    if (!wait) return false;
+    return !isNegatedBefore(clause, 0, wait.index);
+  });
+}
+
 /** حارس أخير: إن اقترح النموذج منهج بكاء صريحاً نرفض إجابته ونرجع للثابتة. */
 export function containsCryTraining(text: string): boolean {
-  return hasPositiveMatch(text, CRY_TRAINING_PATTERNS);
+  const normalized = normalizeApostrophes(text);
+  if (hasDelayedCryResponse(normalized)) return true;
+  return hasPositiveMatch(normalized, CRY_TRAINING_PATTERNS);
 }
 
 /**
@@ -172,14 +285,18 @@ export function containsCryTraining(text: string): boolean {
  * («ضعيها على ظهرها، وليس على جانبها، وبلا وسائد») تمرّ من الحارس.
  */
 export const UNSAFE_SLEEP_PATTERNS = [
-  /(?:ضعيه|ضعيها|ضعي|ضعه|ينام|لينام|نوم)\s+(?:على\s+)?(?:جانبه|جنبه|جانبها|بطنه|بطنها|البطن|الجانب)/,
+  /(?:ضعيه|ضعيها|ضعي|ضعه|ينام|لينام|نوم|نومه|نومها|ينامه|ينامها|تنامه|تنامها|نوّ?\s*مي(?:ه|ها)|نامي(?:ه|ها))\s+(?:الطفل|طفلك|الرضيع|هو|هي)?\s*(?:على\s+)?(?:جانبه|جنبه|جانبها|بطنه|بطنها|البطن|الجانب)/,
+  /(?:place|put|lay|sleep)\S*\s+(?:them|him|her|(?:your|the|my)\s+baby)?\s*(?:on\s+)?(?:their\s+|his\s+|her\s+)?(?:side|stomach|tummy)/i,
+  /(?:ينام|تنام|نوم|نائمة|نومه|نومها|ينامه|ينامها|تنامه|تنامها)\s+(?:الطفل|طفلك|الرضيع|هو|هي)?\s*(?:على\s+)?(?:جانب\w*|بطن\w*|الجانب|البطن)/,
+] as const;
+
+/** أنماط الوسائد — مرفوضة دائماً حتى في جملة وقت البطن (البند 6). */
+const UNSAFE_PILLOW_PATTERNS = [
   /(?:مع|بـ|ب)\s*(?:وسادة|وسائد|مخدة)/,
-  /(?:place|put|lay|sleep)\S*\s+(?:them|him|her|the baby)?\s*(?:on\s+)?(?:their\s+|his\s+|her\s+)?(?:side|stomach|tummy)/i,
   /\b(?:with|use|add)\s+(?:a\s+)?pillow/i,
   /(?:ضعي|ضع|أعطيه|أعطيها)\s+(?:وسادة|وسائد|مخدة)/,
   /(?:وسادة|وسائد|مخدة)\s+تحت\s+(?:رأسه|رأسها|راسه)/,
   /(?:place|put|use|add)\s+(?:a\s+)?(?:small\s+)?pillow/i,
-  /(?:ينام|تنام|نوم|نائمة)\s+(?:الطفل|طفلك|الرضيع|هو|هي)?\s*(?:على\s+)?(?:جانب\w*|بطن\w*|الجانب|البطن)/,
 ] as const;
 
 /**
@@ -187,7 +304,40 @@ export const UNSAFE_SLEEP_PATTERNS = [
  * يخالف قواعد النوم الآمن، فنرفض الإجابة كاملة ونرجع للثابتة.
  */
 export function containsUnsafeSleepAdvice(text: string): boolean {
-  return hasPositiveMatch(text, UNSAFE_SLEEP_PATTERNS);
+  const normalized = normalizeApostrophes(text);
+  if (hasPositiveMatch(normalized, UNSAFE_PILLOW_PATTERNS)) return true;
+  return hasPositiveMatch(normalized, UNSAFE_SLEEP_PATTERNS, {
+    exemptAwakeTummy: true,
+  });
+}
+
+/** الأصول المسموحة لاستدعاء /api/ask (كانت في route.ts حتى رقعة 12.4). */
+export const ALLOWED_ORIGINS = [
+  "https://rahamoon.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:3001",
+] as const;
+
+/**
+ * رقعة 12.4 البند 8: Origin يُقبل بمساواة تامة مع أحد الأصول الثلاثة، وReferer
+ * (يحمل مساراً كاملاً) يُقبل إن بدأ بأحدها متبوعاً فوراً بـ«/» أو انتهى عنده —
+ * فيُسدّ النطاق المتشبه https://rahamoon.vercel.app.evil.com دون كسر مسار الرجوع.
+ */
+export function isAllowedRequestOrigin(
+  origin: string | null,
+  referer: string | null,
+): boolean {
+  const exactOrigin = origin?.trim();
+  if (exactOrigin) {
+    return (ALLOWED_ORIGINS as readonly string[]).includes(exactOrigin);
+  }
+
+  const fromReferer = referer?.trim();
+  if (!fromReferer) return false;
+
+  return ALLOWED_ORIGINS.some(
+    (allowed) => fromReferer === allowed || fromReferer.startsWith(`${allowed}/`),
+  );
 }
 
 const CLOCK_TIME = /\d{1,2}[:：]\d{2}/g;

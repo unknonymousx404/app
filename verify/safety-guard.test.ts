@@ -1,7 +1,7 @@
 /*
-  اختبار حارس النوم الآمن — رقعة 12.3.
-  11 حالة سابقة (7 مسمّاة + 4 نصوص سلامة) و11 حالة لنطاق الجملة.
-  تمرّ = ليست مرفوضة. تُرفض = نوم غير آمن أو تدريب بكاء.
+  اختبار حارس النوم الآمن — رقعة 12.4.
+  40 حالة مسمّاة (1–18 من رقعتي 12.1 و12.3، و19–40 من رقعة 12.4)
+  + 4 نصوص سلامة. تمرّ = ليست مرفوضة. تُرفض = نوم غير آمن أو تدريب بكاء.
   كل واحدة تطبع PASS/FAIL.
 
   التشغيل: node --experimental-strip-types verify/safety-guard.test.ts
@@ -14,6 +14,7 @@ import {
   containsCryTraining,
   containsInventedTime,
   containsUnsafeSleepAdvice,
+  isAllowedRequestOrigin,
   type AskPlanContext,
 } from "../src/lib/engine/ask-content.ts";
 
@@ -179,8 +180,175 @@ const cases: Case[] = [
   },
   {
     name: "18. تُرفض — نوم الطفل على البطن خبري",
+    check: () => assert.equal(isRejected("نوم الطفل على البطن يطيل نومه عادة."), true),
+  },
+  {
+    name: "19. تُرفض — الشرطة الطويلة تكسر الجملة قبل اتركيه يبكي (البند 1)",
     check: () =>
-      assert.equal(isRejected("نوم الطفل على البطن يطيل نومه عادة."), true),
+      assert.equal(
+        isRejected("لا تقلقي — اتركيه يبكي خمس دقائق فقط."),
+        true,
+      ),
+  },
+  {
+    name: "20. تُرفض — الفاصلة المنقوطة تفصل Never عن الوسادة (البند 1)",
+    check: () =>
+      assert.equal(
+        isRejected("Never use loose bedding; add a small pillow instead."),
+        true,
+      ),
+  },
+  {
+    name: "21. تُرفض — الفاصلة اللاتينية تفصل Never عن الوسادة (البند 1)",
+    check: () =>
+      assert.equal(
+        isRejected("Never use a swaddle at this age, add a pillow in the cot."),
+        true,
+      ),
+  },
+  {
+    name: "22. تمرّ — تحذير الخطر بعد المطابقة داخل الجملة (البند 2)",
+    check: () =>
+      assert.equal(
+        isRejected("النوم على البطن خطر على الرضع دون سن سنة."),
+        false,
+      ),
+  },
+  {
+    name: "23. تمرّ — نوم الطفل على البطن خطر (البند 2)",
+    check: () =>
+      assert.equal(
+        isRejected("نوم الطفل على البطن خطر في هذا العمر."),
+        false,
+      ),
+  },
+  {
+    name: "24. تمرّ — «ليست آمنة» بعد المطابقة تحذير لا نصيحة (البند 2)",
+    check: () =>
+      assert.equal(
+        isRejected("وسادة تحت رأسه ليست آمنة قبل عمر سنة — أزيليها من السرير."),
+        false,
+      ),
+  },
+  {
+    name: "25. تُرفض — تبييض خطر: «ليس خطرًا» بعد المطابقة (البند 2)",
+    check: () =>
+      assert.equal(isRejected("وضعه على بطنه ليس خطرًا كما يقولون."), true),
+  },
+  {
+    name: "26. تمرّ — shouldn't نفي بعد تطبيع الاختصار (البند 3)",
+    check: () =>
+      assert.equal(
+        isRejected("You shouldn't put him on his tummy to sleep."),
+        false,
+      ),
+  },
+  {
+    name: "27. تمرّ — can't نفي بعد تطبيع الاختصار (البند 3)",
+    check: () =>
+      assert.equal(
+        isRejected("You can't use a pillow in the cot at this age."),
+        false,
+      ),
+  },
+  {
+    name: "28. تمرّ — Don’t بالفاصلة العليّة المطبيعّة (البند 3)",
+    check: () =>
+      assert.equal(isRejected("Don’t put a pillow in the cot."), false),
+  },
+  {
+    name: "29. تُرفض — صيغة أمر ناقصة: نوّميه على بطنه (البند 4)",
+    check: () =>
+      assert.equal(isRejected("نوّميه على بطنه بعد الرضعة مباشرة."), true),
+  },
+  {
+    name: "30. تُرفض — صيغة أمر ناقصة: ناميه على جانبه (البند 4)",
+    check: () =>
+      assert.equal(isRejected("ناميه على جانبه في المهد ليلاً."), true),
+  },
+  {
+    name: "31. تُرفض — ضمير متصل بعد نوم: نومه على بطنه (البند 4)",
+    check: () =>
+      assert.equal(
+        isRejected("ستجدين نومه على بطنه أهدأ بكثير."),
+        true,
+      ),
+  },
+  {
+    name: "32. تُرفض — your baby في النمط الإنجليزي (البند 4)",
+    check: () =>
+      assert.equal(isRejected("Place your baby on their side tonight."), true),
+  },
+  {
+    name: "33. تُرفض — let him cry بعد الشرطة (البند 5)",
+    check: () =>
+      assert.equal(
+        isRejected(
+          "Don't worry — let him cry for ten minutes before you respond.",
+        ),
+        true,
+      ),
+  },
+  {
+    name: "34. تمرّ — إعفاء وقت البطن أثناء الاستيقاظ (البند 6)",
+    check: () =>
+      assert.equal(
+        isRejected(
+          "Give them tummy time daily: place them on their tummy while awake and supervised.",
+        ),
+        false,
+      ),
+  },
+  {
+    name: "35. تُرفض — انتظري عشر دقائق مع البكاء (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("إن بكى فانتظري عشر دقائق قبل أن تهرعي إليه."),
+        true,
+      ),
+  },
+  {
+    name: "36. تمرّ — انتظري عشرين دقيقة بعد الرضعة بلا بكاء (البند 7)",
+    check: () =>
+      assert.equal(
+        isRejected("انتظري عشرين دقيقة بعد الرضعة قبل وضعه في السرير."),
+        false,
+      ),
+  },
+  {
+    name: "37. Origin — مساواة تامة مع أصل مسموح (البند 8)",
+    check: () =>
+      assert.equal(
+        isAllowedRequestOrigin("https://rahamoon.vercel.app", null),
+        true,
+      ),
+  },
+  {
+    name: "38. Origin — نطاق متشبه يُرفض (البند 8)",
+    check: () =>
+      assert.equal(
+        isAllowedRequestOrigin("https://rahamoon.vercel.app.evil.com", null),
+        false,
+      ),
+  },
+  {
+    name: "39. Referer — مسار كامل تحت أصل مسموح يُقبل (البند 8)",
+    check: () =>
+      assert.equal(
+        isAllowedRequestOrigin(
+          null,
+          "https://rahamoon.vercel.app/ask?from=lib",
+        ),
+        true,
+      ),
+  },
+  {
+    name: "40. Referer — نطاق متشبه بمسار يُرفض (البند 8)",
+    check: () =>
+      assert.equal(
+        isAllowedRequestOrigin(null, "https://rahamoon.vercel.app.evil.com/ask"),
+        false,
+      ),
   },
 ];
 
@@ -220,4 +388,4 @@ if (failures > 0) {
   process.exit(1);
 }
 
-console.log("\nكل الحالات الـ22 PASS.");
+console.log("\nكل الحالات الـ44 PASS (40 حالة مسمّاة + 4 نصوص سلامة).");
