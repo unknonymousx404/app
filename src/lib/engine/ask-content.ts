@@ -119,18 +119,33 @@ const CRY_TRAINING_PATTERNS = [
 ] as const;
 
 /**
- * النفي قبل المطابقة يجعلها آمنة: «لا على جانبه وبلا وسائد» نصيحة آمنة،
- * لا نصيحة بوضع خطر. نفحص نافذة قصيرة قبل المطابقة، مع السماح بحروف
- * الجر والفصل بين أداة النفي والمطابقة.
+ * النفي داخل الجملة: المطابقة منفية إذا ظهرت أداة نفي أو تحذير في نص
+ * الجملة قبلها. بداية الجملة = آخر حدّ من [.؛،!؟\n] قبل المطابقة، أو 0.
+ * «خطر/خطير/dangerous» في القائمة لأن جملة «النوم على البطن خطر» تحذير
+ * آمن لا نصيحة خطر.
+ *
+ * قيد مقبول وموثّق: جملة مختلطة نادرة («لا تستجيبي واتركيه يبكي») قد تمرّ،
+ * لأن أداة النفي في أول الجملة تغطّي ما بعدها حتى حدّ الجملة التالي.
+ * الحارس خط دفاع أخير، والبرومبت يمنع هذه الصياغة أصلًا.
  */
-const NEGATION_BEFORE =
-  /(?:^|[^\p{L}\p{N}]|و)(?:لا|بلا|بدون|دون|ليس|ليست|ممنوع|تجنّبي|تجنبي|امتنعي|never|without|avoid|not|no)\s*(?:على|في|the|their|his|her|them|him|a|an|on|with|to)?\s*$/iu;
+const CLAUSE_BREAK = /[.؛،!؟\n]/;
 
-const NEGATION_WINDOW = 24;
+const NEGATION = new RegExp(
+  "(?:^|[^\\p{L}])(?:لا|ألا|ألّا|لن|ولا|بلا|بدون|دون|ليس|ليست|ممنوع|" +
+    "تفادي|تجنّبي|تجنبي|امتنعي|ابتعدي|خطر|خطير|غير آمن|" +
+    "never|avoid|without|don't|doesn't|not|no|dangerous|unsafe|risky)(?![\\p{L}])",
+  "iu",
+);
 
-function isNegatedBefore(text: string, index: number): boolean {
-  const from = Math.max(0, index - NEGATION_WINDOW);
-  return NEGATION_BEFORE.test(text.slice(from, index));
+function isNegatedInClause(text: string, index: number): boolean {
+  let start = 0;
+  for (let i = index - 1; i >= 0; i--) {
+    if (CLAUSE_BREAK.test(text[i])) {
+      start = i + 1;
+      break;
+    }
+  }
+  return NEGATION.test(text.slice(start, index));
 }
 
 /** نبحث عن أول مطابقة غير منفية — المطابقة المنفية تُتجاهل ونكمل. */
@@ -140,7 +155,7 @@ function hasPositiveMatch(text: string, patterns: readonly RegExp[]): boolean {
     const scan = new RegExp(pattern.source, flags);
     let match = scan.exec(text);
     while (match) {
-      if (!isNegatedBefore(text, match.index)) return true;
+      if (!isNegatedInClause(text, match.index)) return true;
       match = scan.exec(text);
     }
   }
@@ -161,6 +176,10 @@ export const UNSAFE_SLEEP_PATTERNS = [
   /(?:مع|بـ|ب)\s*(?:وسادة|وسائد|مخدة)/,
   /(?:place|put|lay|sleep)\S*\s+(?:them|him|her|the baby)?\s*(?:on\s+)?(?:their\s+|his\s+|her\s+)?(?:side|stomach|tummy)/i,
   /\b(?:with|use|add)\s+(?:a\s+)?pillow/i,
+  /(?:ضعي|ضع|أعطيه|أعطيها)\s+(?:وسادة|وسائد|مخدة)/,
+  /(?:وسادة|وسائد|مخدة)\s+تحت\s+(?:رأسه|رأسها|راسه)/,
+  /(?:place|put|use|add)\s+(?:a\s+)?(?:small\s+)?pillow/i,
+  /(?:ينام|تنام|نوم|نائمة)\s+(?:الطفل|طفلك|الرضيع|هو|هي)?\s*(?:على\s+)?(?:جانب\w*|بطن\w*|الجانب|البطن)/,
 ] as const;
 
 /**

@@ -1,6 +1,8 @@
 /*
-  اختبار حارس النوم الآمن — رقعة 12.2.
-  الحالات السبع المعتمدة، كل واحدة تطبع PASS/FAIL.
+  اختبار حارس النوم الآمن — رقعة 12.3.
+  11 حالة سابقة (7 مسمّاة + 4 نصوص سلامة) و11 حالة لنطاق الجملة.
+  تمرّ = ليست مرفوضة. تُرفض = نوم غير آمن أو تدريب بكاء.
+  كل واحدة تطبع PASS/FAIL.
 
   التشغيل: node --experimental-strip-types verify/safety-guard.test.ts
 */
@@ -21,6 +23,11 @@ const plan: AskPlanContext = {
   lastFeed: "18:45",
   bedtime: "19:05",
 };
+
+/** الرفض كما في المسار: نوم غير آمن أو تدريب بكاء. */
+function isRejected(text: string): boolean {
+  return containsUnsafeSleepAdvice(text) || containsCryTraining(text);
+}
 
 interface Case {
   name: string;
@@ -89,6 +96,92 @@ const cases: Case[] = [
         true,
       ),
   },
+  {
+    name: "8. تمرّ — نفي البطن وتحذير الخطر",
+    check: () =>
+      assert.equal(
+        isRejected(
+          "لا تضعيه على بطنه أبداً — النوم على البطن خطر، ضعيه على ظهره فقط.",
+        ),
+        false,
+      ),
+  },
+  {
+    name: "9. تمرّ — لا تدعيها تبكي",
+    check: () =>
+      assert.equal(
+        isRejected("لا تدعيها تبكي حتى تنام — استجيبي لها بهدوء."),
+        false,
+      ),
+  },
+  {
+    name: "10. تمرّ — يجب ألا ينام على بطنه أو جانبه",
+    check: () =>
+      assert.equal(
+        isRejected("يجب ألا ينام على بطنه أو على جانبه في هذا العمر."),
+        false,
+      ),
+  },
+  {
+    name: "11. تمرّ — تجنبي البطن والوسائد",
+    check: () =>
+      assert.equal(
+        isRejected("تجنبي النوم على البطن والوسائد في السرير."),
+        false,
+      ),
+  },
+  {
+    name: "12. تمرّ — never cry it out",
+    check: () =>
+      assert.equal(
+        isRejected(
+          "You never need to let him cry it out — respond gently every time.",
+        ),
+        false,
+      ),
+  },
+  {
+    name: "13. تمرّ — تفادي المخدة",
+    check: () =>
+      assert.equal(
+        isRejected("تفادي وضع المخدة داخل سرير الطفل نهائياً."),
+        false,
+      ),
+  },
+  {
+    name: "14. تُرفض — البطن بعد الرضعة",
+    check: () =>
+      assert.equal(
+        isRejected("ضعيه على بطنه بعد الرضعة، فهذا يساعد الهضم."),
+        true,
+      ),
+  },
+  {
+    name: "15. تُرفض — وسادة تحت رأسه",
+    check: () =>
+      assert.equal(isRejected("ضعي وسادة صغيرة تحت رأسه لتريحيه."), true),
+  },
+  {
+    name: "16. تُرفض — اتركيه يبكي",
+    check: () =>
+      assert.equal(
+        isRejected("اتركيه يبكي عشر دقائق قبل أن تستجيبي."),
+        true,
+      ),
+  },
+  {
+    name: "17. تُرفض — place on his side",
+    check: () =>
+      assert.equal(
+        isRejected("Place him on his side tonight and see if it helps."),
+        true,
+      ),
+  },
+  {
+    name: "18. تُرفض — نوم الطفل على البطن خبري",
+    check: () =>
+      assert.equal(isRejected("نوم الطفل على البطن يطيل نومه عادة."), true),
+  },
 ];
 
 let failures = 0;
@@ -127,4 +220,4 @@ if (failures > 0) {
   process.exit(1);
 }
 
-console.log("\nكل الحالات السبع PASS.");
+console.log("\nكل الحالات الـ22 PASS.");

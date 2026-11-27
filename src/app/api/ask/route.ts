@@ -63,13 +63,18 @@ function cleanAnswer(value: string): string {
     .trim();
 }
 
-const ALLOWED_ORIGIN = "https://rahamoon.vercel.app";
+const ALLOWED_ORIGINS = [
+  "https://rahamoon.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:3001",
+] as const;
 
 export async function POST(request: Request) {
-  // لا استدعاء من خارج التطبيق: Origin/Referer من نطاق النشر وحده.
+  // لا استدعاء من خارج التطبيق. الترويسة قابلة للتزييف أصلًا؛
+  // localhost هنا لتسهيل اختبار مسار AI بعد ضبط المفتاح.
   const origin =
     request.headers.get("origin") ?? request.headers.get("referer") ?? "";
-  if (!origin.startsWith(ALLOWED_ORIGIN)) {
+  if (!ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed))) {
     return new NextResponse(null, { status: 403 });
   }
 
