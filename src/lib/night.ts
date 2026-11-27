@@ -10,11 +10,11 @@
   القطر). مُتحقَّق منها على ثماني مدن موثّقة: نيويورك ولندن والرياض
   ودبي والقاهرة وجاكرتا وسيدني — الفارق أقل من خمس دقائق.
 
-  الإحداثيات الافتراضية مرجعية (الرياض) وتُمرَّر صراحةً عند الحاجة.
+  الإحداثيات الافتراضية مرجعية (القاهرة) وتُمرَّر صراحةً عند الحاجة.
 */
 
-export const DEFAULT_LATITUDE = 24.7136;
-export const DEFAULT_LONGITUDE = 46.6753;
+export const DEFAULT_LATITUDE = 30.0444;
+export const DEFAULT_LONGITUDE = 31.2357;
 
 export interface SunTimes {
   sunrise: Date;

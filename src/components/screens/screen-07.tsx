@@ -12,6 +12,7 @@ import { ASK_DAILY_LIMIT, consumeAskQuestion, useAskUsage } from "@/lib/ask-usag
 import { BRAND } from "@/lib/brand";
 import { buildBaseAnswer, type BaseAnswer } from "@/lib/engine/answers";
 import {
+  buildSafetyAnswer,
   buildStaticAskAnswer,
   buildUnderFourAnswer,
   detectQuestionLang,
@@ -21,7 +22,7 @@ import type { Adjustment } from "@/lib/engine/adjuster";
 import { applyAdjustments } from "@/lib/engine/adjuster";
 import { buildFirstPlan } from "@/lib/engine/first-plan";
 import { hasRedFlag } from "@/lib/engine/safety";
-import { ASK, formatAge } from "@/lib/i18n";
+import { ASK, formatAge, formatTime } from "@/lib/i18n";
 import { useLang } from "@/lib/lang";
 import { useChat, type ChatMessage } from "@/lib/store/chat";
 import { DEMO_PROFILE, isProfileComplete, useProfile } from "@/lib/store/profile";
@@ -189,7 +190,7 @@ export function Screen07() {
 
     const localFallback = safetyFallback
       ? {
-          text: "",
+          text: buildSafetyAnswer(questionLang),
           template: "safety" as const,
           lessonId: undefined,
           hidePlanActions: false,
@@ -207,6 +208,18 @@ export function Screen07() {
             lessonId: staticAnswer.lessonId,
             hidePlanActions: false,
           };
+
+    // أوقات الخطة داخل ردود AI تُعرض بنظام 12 ساعة — تحويل عرض فقط،
+    // لا تغيير للبرومبت ولا للحارس.
+    const localizePlanTimes = (text: string) => {
+      const times = Array.from(new Set([plan.routineStart, plan.lastFeed, plan.bedtime]));
+      return times.reduce((current, time) => {
+        const label = formatTime(lang, time);
+        if (label === time) return current;
+        const escaped = time.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return current.replace(new RegExp(`(?<!\\d)${escaped}(?!\\d)`, "g"), label);
+      }, text);
+    };
 
     const pushAnswer = (
       text: string,
@@ -278,7 +291,11 @@ export function Screen07() {
         if (kind !== "under-four") throw new Error("under four guard");
         pushAnswer(answer, "general", undefined, true);
       } else {
-        pushAnswer(answer, staticAnswer.template, staticAnswer.lessonId);
+        pushAnswer(
+          localizePlanTimes(answer),
+          staticAnswer.template,
+          staticAnswer.lessonId,
+        );
       }
     } catch {
       // رجوع صامت: لا رسالة خطأ أمام الأم، فقط الإجابة الثابتة المكتوبة سلفاً.

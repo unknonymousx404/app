@@ -63,7 +63,16 @@ function cleanAnswer(value: string): string {
     .trim();
 }
 
+const ALLOWED_ORIGIN = "https://rahamoon.vercel.app";
+
 export async function POST(request: Request) {
+  // لا استدعاء من خارج التطبيق: Origin/Referer من نطاق النشر وحده.
+  const origin =
+    request.headers.get("origin") ?? request.headers.get("referer") ?? "";
+  if (!origin.startsWith(ALLOWED_ORIGIN)) {
+    return new NextResponse(null, { status: 403 });
+  }
+
   let body: AskBody;
 
   try {

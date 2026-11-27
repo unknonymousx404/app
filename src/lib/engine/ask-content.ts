@@ -114,26 +114,53 @@ const CRY_TRAINING_PATTERNS = [
   /controlled\s*crying/i,
   /extinction\s+(method|sleep)/i,
   /ferber\s+method/i,
-  /اتركيها\s+تبكي/,
-  /اتركيه\s+يبكي/,
-  /دعيها\s+تبكي/,
-  /دعيه\s+يبكي/,
+  /(?:اتركيها|اتركيه|دعيها|دعيه)\s+(?:تبكي|يبكي)/,
   /طريقة\s+فيربر/,
 ] as const;
 
-/** حارس أخير: إن اقترح النموذج منهج بكاء صريحاً نرفض إجابته ونرجع للثابتة. */
-export function containsCryTraining(text: string): boolean {
-  return CRY_TRAINING_PATTERNS.some((pattern) => pattern.test(text));
+/**
+ * النفي قبل المطابقة يجعلها آمنة: «لا على جانبه وبلا وسائد» نصيحة آمنة،
+ * لا نصيحة بوضع خطر. نفحص نافذة قصيرة قبل المطابقة، مع السماح بحروف
+ * الجر والفصل بين أداة النفي والمطابقة.
+ */
+const NEGATION_BEFORE =
+  /(?:^|[^\p{L}\p{N}]|و)(?:لا|بلا|بدون|دون|ليس|ليست|ممنوع|تجنّبي|تجنبي|امتنعي|never|without|avoid|not|no)\s*(?:على|في|the|their|his|her|them|him|a|an|on|with|to)?\s*$/iu;
+
+const NEGATION_WINDOW = 24;
+
+function isNegatedBefore(text: string, index: number): boolean {
+  const from = Math.max(0, index - NEGATION_WINDOW);
+  return NEGATION_BEFORE.test(text.slice(from, index));
 }
 
-const UNSAFE_SLEEP_PATTERNS = [
-  /على\s+(جانبه|جنبه|جانبها|الجانب|الجانبين)/,
-  /على\s+(بطنه|بطنها|البطن)/,
-  /وضعية\s+(الجانبين|الجانب|البطن)/,
-  /(?:وسادة|وسائد|مخدة)/,
-  /on\s+(?:their|his|her|the)\s+(?:side|stomach|tummy)/i,
-  /\b(?:side|stomach)\s+sleep(?:ing)?\b/i,
-  /\bpillow/i,
+/** نبحث عن أول مطابقة غير منفية — المطابقة المنفية تُتجاهل ونكمل. */
+function hasPositiveMatch(text: string, patterns: readonly RegExp[]): boolean {
+  for (const pattern of patterns) {
+    const flags = pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`;
+    const scan = new RegExp(pattern.source, flags);
+    let match = scan.exec(text);
+    while (match) {
+      if (!isNegatedBefore(text, match.index)) return true;
+      match = scan.exec(text);
+    }
+  }
+  return false;
+}
+
+/** حارس أخير: إن اقترح النموذج منهج بكاء صريحاً نرفض إجابته ونرجع للثابتة. */
+export function containsCryTraining(text: string): boolean {
+  return hasPositiveMatch(text, CRY_TRAINING_PATTERNS);
+}
+
+/**
+ * أنماط الأمر الإيجابي وحده — لا أنماط الوجود. نصوص النفي الآمنة
+ * («ضعيها على ظهرها، وليس على جانبها، وبلا وسائد») تمرّ من الحارس.
+ */
+export const UNSAFE_SLEEP_PATTERNS = [
+  /(?:ضعيه|ضعيها|ضعي|ضعه|ينام|لينام|نوم)\s+(?:على\s+)?(?:جانبه|جنبه|جانبها|بطنه|بطنها|البطن|الجانب)/,
+  /(?:مع|بـ|ب)\s*(?:وسادة|وسائد|مخدة)/,
+  /(?:place|put|lay|sleep)\S*\s+(?:them|him|her|the baby)?\s*(?:on\s+)?(?:their\s+|his\s+|her\s+)?(?:side|stomach|tummy)/i,
+  /\b(?:with|use|add)\s+(?:a\s+)?pillow/i,
 ] as const;
 
 /**
@@ -141,7 +168,7 @@ const UNSAFE_SLEEP_PATTERNS = [
  * يخالف قواعد النوم الآمن، فنرفض الإجابة كاملة ونرجع للثابتة.
  */
 export function containsUnsafeSleepAdvice(text: string): boolean {
-  return UNSAFE_SLEEP_PATTERNS.some((pattern) => pattern.test(text));
+  return hasPositiveMatch(text, UNSAFE_SLEEP_PATTERNS);
 }
 
 const CLOCK_TIME = /\d{1,2}[:：]\d{2}/g;
